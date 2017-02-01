@@ -19,7 +19,7 @@ function validate(xml, schematronPath, includeWarnings, externalDir, xmlSnippetM
     
     includeWarnings = includeWarnings === undefined ? true : includeWarnings;
     externalDir = externalDir || './';
-    xmlSnippetMaxLength = xmlSnippetMaxLength || 200;
+    xmlSnippetMaxLength = xmlSnippetMaxLength === undefined ? 200 : xmlSnippetMaxLength;
     
     // Load xml doc
     var xmlDoc = new dom().parseFromString(xml);
