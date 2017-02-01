@@ -10,11 +10,11 @@ var dom = require('xmldom').DOMParser;
 var parseSchematron = require('./parseSchematron');
 var testAssertion = require('./testAssertion');
 
-// Parsed object "cache"
+// Parsed object cache
 var parsedMap = {};
 
-function validate(xml, schematronPath, options) {
-    // Context "cache"
+function validate(xml, schematron, options) {
+    // Context cache
     var contextMap = {};
     
     var options = options || {};
@@ -22,22 +22,44 @@ function validate(xml, schematronPath, options) {
     var resourceDir = options.resourceDir || './';
     var xmlSnippetMaxLength = options.xmlSnippetMaxLength === undefined ? 200 : options.xmlSnippetMaxLength;
     
+    // If not validate xml, it might be a filepath
+    if (xml.trim().indexOf('<')) {
+        try {
+            xml = fs.readFileSync(xml, 'utf-8').toString();
+        }
+        catch (err) {
+        }
+    }
+    
+    // If not validate xml, it might be a filepath
+    var schematronPath = null;
+    if (schematron.trim().indexOf('<')) {
+        try {
+            var temp = schematron;
+            schematron = fs.readFileSync(schematron, 'utf-8').toString();
+            schematronPath = temp;
+        }
+        catch (err) {
+        }
+    }
+    
     // Load xml doc
     var xmlDoc = new dom().parseFromString(xml);
         
     var s = parsedMap[schematronPath];
     
-    // If not already parsed
+    // If not in cache
     if (!s) {
         // Load schematron doc
-        var schematron = fs.readFileSync(schematronPath, 'utf-8').toString();
         var schematronDoc = new dom().parseFromString(schematron);
 
         // Parse schematron
         var s = parseSchematron(schematronDoc);
 
-        // Saved parsed schematron for this schematron file path
-        parsedMap[schematronPath] = s;
+        // If schematron given as filepath, cache parsed schematron
+        if (schematronPath) {
+            parsedMap[schematronPath] = s;
+        }
     }
     
     // Extract data from parsed schematron object
