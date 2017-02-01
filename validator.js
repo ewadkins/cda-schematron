@@ -13,13 +13,14 @@ var testAssertion = require('./testAssertion');
 // Parsed object "cache"
 var parsedMap = {};
 
-function validate(xml, schematronPath, includeWarnings, externalDir, xmlSnippetMaxLength) {
+function validate(xml, schematronPath, options) {
     // Context "cache"
     var contextMap = {};
     
-    includeWarnings = includeWarnings === undefined ? true : includeWarnings;
-    externalDir = externalDir || './';
-    xmlSnippetMaxLength = xmlSnippetMaxLength === undefined ? 200 : xmlSnippetMaxLength;
+    var options = options || {};
+    var includeWarnings = options.includeWarnings === undefined ? true : options.includeWarnings;
+    var resourceDir = options.resourceDir || './';
+    var xmlSnippetMaxLength = options.xmlSnippetMaxLength === undefined ? 200 : options.xmlSnippetMaxLength;
     
     // Load xml doc
     var xmlDoc = new dom().parseFromString(xml);
@@ -154,7 +155,7 @@ function validate(xml, schematronPath, includeWarnings, externalDir, xmlSnippetM
                         assertionId: assertionsAndExtensions[i].id,
                         test: assertionsAndExtensions[i].test,
                         description: assertionsAndExtensions[i].description,
-                        results: testAssertion(assertionsAndExtensions[i].test, selected, select, xmlDoc, externalDir, xmlSnippetMaxLength)
+                        results: testAssertion(assertionsAndExtensions[i].test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength)
                     });
                 }
             }

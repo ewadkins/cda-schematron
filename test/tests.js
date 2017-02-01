@@ -17,15 +17,15 @@ describe('Validator should', function() {
         expect(results).to.be.an('object');
         done();
     });
-    it('return an errorCount', function(done) {
+    it('return errorCount', function(done) {
         expect(results.errorCount).to.be.a('number');
         done();
     });
-    it('return a warningCount', function(done) {
+    it('return warningCount', function(done) {
         expect(results.warningCount).to.be.a('number');
         done();
     });
-    it('return an ignoredCount', function(done) {
+    it('return ignoredCount', function(done) {
         expect(results.ignoredCount).to.be.a('number');
         done();
     });
@@ -62,6 +62,24 @@ describe('Validator should', function() {
         done();
     });
     it('return correct number of ignored', function(done) {
+        expect(results.ignoredCount).to.be.equal(1);
+        done();
+    });
+    
+    it('return similar results without warnings', function(done) {
+        results = validator.validate(xml, schematronPath, { includeWarnings: false });
+        expect(results).to.be.an('object');
+        expect(results.errorCount).to.be.a('number');
+        expect(results.warningCount).to.be.a('number');
+        expect(results.ignoredCount).to.be.a('number');
+        expect(results.errors).to.be.a('array');
+        expect(results.warnings).to.be.a('array');
+        expect(results.ignored).to.be.a('array');
+        expect(results.errorCount).to.be.equal(results.errors.length);
+        expect(results.warningCount).to.be.equal(results.warnings.length);
+        expect(results.ignoredCount).to.be.equal(results.ignored.length);
+        expect(results.errorCount).to.be.equal(16);
+        expect(results.warningCount).to.be.equal(0);
         expect(results.ignoredCount).to.be.equal(1);
         done();
     });

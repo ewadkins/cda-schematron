@@ -4,13 +4,13 @@ module.exports = testAssertion;
 
 var includeExternalDocument = require('./includeExternalDocument');
 
-function testAssertion(test, selected, select, xmlDoc, externalDir, xmlSnippetMaxLength) {
+function testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength) {
     var results = [];
     
     // Extract values from external document and modify test if a document call is made
     var originalTest = test;
     try {
-        test = includeExternalDocument(test, externalDir);
+        test = includeExternalDocument(test, resourceDir);
     }
     catch (err) {
         return { ignored: true, errorMessage: err.message };

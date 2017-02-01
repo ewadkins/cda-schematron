@@ -9,7 +9,7 @@ var path_module = require('path');
 
 var loadedExternalDocuments = {};
 
-function modifyTest(test, externalDir) {
+function modifyTest(test, resourceDir) {
     
     var matches = /=document\((\'[-_.A-Za-z0-9]+\'|\"[-_.A-Za-z0-9]+\")\)/.exec(test);
     while (matches) {
@@ -54,7 +54,7 @@ function modifyTest(test, externalDir) {
         if (!loadedExternalDocuments[filepath]) {
             var externalXml = null;
             try {
-                externalXml = fs.readFileSync(path_module.join(externalDir, filepath), 'utf-8').toString();
+                externalXml = fs.readFileSync(path_module.join(resourceDir, filepath), 'utf-8').toString();
             }
             catch (err) {
                 throw new Error('No such file \'' + filepath + '\'');
