@@ -1,0 +1,29 @@
+{
+  "name": "cda-schematron",
+  "version": "1.0.0",
+  "description": "A javascript implementation of schematron testing for XML documents. This specifically resolves a need for a package that allows a quick, reliable install for validating HL7 clinical documents, such as C-CDA.",
+  "main": "validator.js",
+  "scripts": {
+    "test": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewadkins/cda-schematron.git"
+  },
+  "author": "Eric Wadkins",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ewadkins/cda-schematron/issues"
+  },
+  "homepage": "https://github.com/ewadkins/cda-schematron#readme",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-jshint": "^1.1.0",
+    "grunt-mocha-test": "^0.13.2",
+    "mocha": "^3.2.0"
+  },
+  "dependencies": {
+    "xmldom": "0.1.27",
+    "xpath": "0.0.23"
+  }
+}
