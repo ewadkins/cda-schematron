@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/ewadkins/cda-schematron#readme",
   "devDependencies": {
+    "chai": "^3.5.0",
     "grunt": "^1.0.1",
     "grunt-contrib-jshint": "^1.1.0",
     "grunt-mocha-test": "^0.13.2",
