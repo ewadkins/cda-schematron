@@ -114,10 +114,6 @@ function validate(xml, schematronPath, includeWarnings, externalDir, xmlSnippetM
         }
     }
     
-    console.log('Errors: ' + errors.length);
-    console.log('Warnings: ' + warnings.length);
-    console.log('Ignored: ' + ignored.length);
-    
     return {
         errorCount: errors.length,
         warningCount: warnings.length,
