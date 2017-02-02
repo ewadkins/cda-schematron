@@ -1,14 +1,7 @@
 // jshint node:true
 // jshint shadow:true
 
-//module.exports = { validate: validate };
-
-module.exports = { validate: function(xml, schematron, options) {
-    var start = new Date();
-    var results = validate(xml, schematron, options);
-    var end = new Date();
-    console.log('Took ' + (end.getTime() - start.getTime()) + ' ms');
-}};
+module.exports = { validate: validate };
 
 var fs = require('fs');
 var xpath = require('xpath');
