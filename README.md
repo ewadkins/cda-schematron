@@ -56,6 +56,7 @@ var results = validator.validate(xmlPath, schematronPath);
     errorMessage: errorMessage,     // reason for the exception/ignoring the test
     type: type,                     // "error" or "warning"
     test: test,                     // xpath test
+    simplifiedTest: simplifiedTest, // xpath test with resource values included, if applicable, null otherwise
     description: description,       // schematron description of the test case
     patternId: patternId,           // schematron-assigned pattern id
     ruleId: ruleId,                 // schematron-assigned rule id
