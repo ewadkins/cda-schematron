@@ -1,11 +1,19 @@
 // jshint node:true
 // jshint shadow:true
 
-module.exports = { validate: validate };
+//module.exports = { validate: validate };
+
+module.exports = { validate: function(xml, schematron, options) {
+    var start = new Date();
+    var results = validate(xml, schematron, options);
+    var end = new Date();
+    console.log('Took ' + (end.getTime() - start.getTime()) + ' ms');
+}};
 
 var fs = require('fs');
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
+var crypto = require('crypto');
 
 var parseSchematron = require('./parseSchematron');
 var testAssertion = require('./testAssertion');
@@ -45,8 +53,9 @@ function validate(xml, schematron, options) {
     
     // Load xml doc
     var xmlDoc = new dom().parseFromString(xml);
-        
-    var s = parsedMap[schematronPath];
+    
+    var hash = crypto.createHash('md5').update(schematron).digest('hex');
+    var s = parsedMap[hash];
     
     // If not in cache
     if (!s) {
@@ -56,10 +65,8 @@ function validate(xml, schematron, options) {
         // Parse schematron
         var s = parseSchematron(schematronDoc);
 
-        // If schematron given as filepath, cache parsed schematron
-        if (schematronPath) {
-            parsedMap[schematronPath] = s;
-        }
+        // Cache parsed schematron
+        parsedMap[hash] = s;
     }
     
     // Extract data from parsed schematron object
@@ -151,7 +158,7 @@ function validate(xml, schematron, options) {
         var assertionsAndExtensions = ruleAssertionMap[rule].assertionsAndExtensions;
         var context = contextOverride || ruleAssertionMap[rule].context;
         
-        // Determine the sections within context, load selected section from "cache" if possible
+        // Determine the sections within context, load selected section from cache if possible
         var selected = contextMap[context];
         var contextModified = context;
         if (!selected) {
@@ -166,7 +173,6 @@ function validate(xml, schematron, options) {
             }
             contextMap[context] = selected;
         }
-        
         
         for (var i = 0; i < assertionsAndExtensions.length; i++) {
             if (assertionsAndExtensions[i].type === 'assertion') {

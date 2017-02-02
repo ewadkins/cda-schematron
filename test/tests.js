@@ -9,11 +9,12 @@ var xmlPath = './test/test.xml';
 var schematronPath = './test/test.sch';
 
 var xml = fs.readFileSync(xmlPath, 'utf-8').toString();
+var schematron = fs.readFileSync(schematronPath, 'utf-8').toString();
 
 describe('Validator should', function() {
     var results;
-    it('return results', function(done) {
-        results = validator.validate(xml, schematronPath);
+    it('return results given xml and schematron', function(done) {
+        results = validator.validate(xml, schematron);
         expect(results).to.be.an('object');
         done();
     });
@@ -67,7 +68,7 @@ describe('Validator should', function() {
     });
     
     it('return similar results without warnings', function(done) {
-        results = validator.validate(xml, schematronPath, { includeWarnings: false });
+        results = validator.validate(xml, schematron, { includeWarnings: false });
         expect(results).to.be.an('object');
         expect(results.errorCount).to.be.a('number');
         expect(results.warningCount).to.be.a('number');
@@ -80,6 +81,78 @@ describe('Validator should', function() {
         expect(results.ignoredCount).to.be.equal(results.ignored.length);
         expect(results.errorCount).to.be.equal(16);
         expect(results.warningCount).to.be.equal(0);
+        expect(results.ignoredCount).to.be.equal(1);
+        done();
+    });
+    
+    it('return similar results given xml filepath', function(done) {
+        results = validator.validate(xmlPath, schematron);
+        expect(results).to.be.an('object');
+        expect(results.errorCount).to.be.a('number');
+        expect(results.warningCount).to.be.a('number');
+        expect(results.ignoredCount).to.be.a('number');
+        expect(results.errors).to.be.a('array');
+        expect(results.warnings).to.be.a('array');
+        expect(results.ignored).to.be.a('array');
+        expect(results.errorCount).to.be.equal(results.errors.length);
+        expect(results.warningCount).to.be.equal(results.warnings.length);
+        expect(results.ignoredCount).to.be.equal(results.ignored.length);
+        expect(results.errorCount).to.be.equal(16);
+        expect(results.warningCount).to.be.equal(15);
+        expect(results.ignoredCount).to.be.equal(1);
+        done();
+    });
+    
+    it('return similar results given schematron filepath', function(done) {
+        results = validator.validate(xml, schematronPath);
+        expect(results).to.be.an('object');
+        expect(results.errorCount).to.be.a('number');
+        expect(results.warningCount).to.be.a('number');
+        expect(results.ignoredCount).to.be.a('number');
+        expect(results.errors).to.be.a('array');
+        expect(results.warnings).to.be.a('array');
+        expect(results.ignored).to.be.a('array');
+        expect(results.errorCount).to.be.equal(results.errors.length);
+        expect(results.warningCount).to.be.equal(results.warnings.length);
+        expect(results.ignoredCount).to.be.equal(results.ignored.length);
+        expect(results.errorCount).to.be.equal(16);
+        expect(results.warningCount).to.be.equal(15);
+        expect(results.ignoredCount).to.be.equal(1);
+        done();
+    });
+    
+    it('return similar results given xml filepath and schematron filepath', function(done) {
+        results = validator.validate(xmlPath, schematronPath);
+        expect(results).to.be.an('object');
+        expect(results.errorCount).to.be.a('number');
+        expect(results.warningCount).to.be.a('number');
+        expect(results.ignoredCount).to.be.a('number');
+        expect(results.errors).to.be.a('array');
+        expect(results.warnings).to.be.a('array');
+        expect(results.ignored).to.be.a('array');
+        expect(results.errorCount).to.be.equal(results.errors.length);
+        expect(results.warningCount).to.be.equal(results.warnings.length);
+        expect(results.ignoredCount).to.be.equal(results.ignored.length);
+        expect(results.errorCount).to.be.equal(16);
+        expect(results.warningCount).to.be.equal(15);
+        expect(results.ignoredCount).to.be.equal(1);
+        done();
+    });
+    
+    it('return cached schematron results more quickly', function(done) {
+        results = validator.validate(xmlPath, schematronPath);
+        expect(results).to.be.an('object');
+        expect(results.errorCount).to.be.a('number');
+        expect(results.warningCount).to.be.a('number');
+        expect(results.ignoredCount).to.be.a('number');
+        expect(results.errors).to.be.a('array');
+        expect(results.warnings).to.be.a('array');
+        expect(results.ignored).to.be.a('array');
+        expect(results.errorCount).to.be.equal(results.errors.length);
+        expect(results.warningCount).to.be.equal(results.warnings.length);
+        expect(results.ignoredCount).to.be.equal(results.ignored.length);
+        expect(results.errorCount).to.be.equal(16);
+        expect(results.warningCount).to.be.equal(15);
         expect(results.ignoredCount).to.be.equal(1);
         done();
     });
