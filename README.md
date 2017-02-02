@@ -38,4 +38,13 @@ var results = validator.validate(xmlPath, schematronPath);
 
 **Errors** and **warnings** are reported as determined by the schematron and test descriptions.
 
-**Ignored** tests are those that resulted in an error of some sort (eg. the test is invalid xpath and could not be parsed properly) and require manual inspection.
+**Ignored** tests are those that resulted in an exception of some sort (eg. the test is invalid xpath and could not be parsed properly) and require manual inspection.
+
+### Options
+The ```validate``` function takes in an optional third argument, ```options```. The three fields that can be included in ```options``` are as follows:
+
+**```includeWarnings```**: ```true``` or ```false```, this determines whether or not warnings should be tested and returned. Defaults to ```true```.
+
+**```resourceDir```**: a path to a resource directory, which contains resource files (eg. voc.xml) necessary for some schematron tests. Defaults to ```'./'```, the current directory.
+
+**```xmlSnippetMaxLength```**: an integer, which is the maximum length of the ```xml``` field in validation results. Defaults to ```200```. Set to ```0``` for unlimited length.
