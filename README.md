@@ -33,9 +33,36 @@ var results = validator.validate(xmlPath, schematronPath);
 ### Results
 ```results``` is an object containing arrays  ```errors```, ```warnings```, and ```ignoreds```.
 
-**Errors** and **warnings** are reported as determined by the schematron and test descriptions.
+**Errors** and **warnings** are reported as determined by the schematron and test descriptions. They are of the following form:
+```javascript
+{
+    type: type,                     // "error" or "warning"
+    test: test,                     // xpath test
+    simplifiedTest: simplifiedTest, // xpath test with resource values included, if applicable, null otherwise
+    description: description,       // schematron description of the test case
+    line: line,                     // line number of the violating context
+    path: path,                     // xpath path of the violating context
+    patternId: patternId,           // schematron-assigned pattern id
+    ruleId: ruleId,                 // schematron-assigned rule id
+    assertionId: assertionId,       // schematron-assigned assertion id
+    context: context,               // xpath context of the rule
+    xml: xml                        // xml snippet of the violating context
+}
+```
 
-**Ignored** tests are those that resulted in an exception while running (eg. the test is invalid xpath and could not be parsed properly) and require manual inspection.
+**Ignored** tests are those that resulted in an exception while running (eg. the test is invalid xpath and could not be parsed properly) and require manual inspection. They are of the following form:
+```javascript
+{
+    errorMessage: errorMessage,     // reason for the exception/ignoring the test
+    type: type,                     // "error" or "warning"
+    test: test,                     // xpath test
+    description: description,       // schematron description of the test case
+    patternId: patternId,           // schematron-assigned pattern id
+    ruleId: ruleId,                 // schematron-assigned rule id
+    assertionId: assertionId,       // schematron-assigned assertion id
+    context: context,               // xpath context of the rule
+}
+```
 
 ### Options
 The ```validate``` function takes in an object as an optional third argument, ```options```. The three fields that can be included in ```options``` are as follows:
