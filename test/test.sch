@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <sch:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sch="http://purl.oclc.org/dsdl/schematron">
 	<sch:ns prefix="dh" uri="urn:dh" />
 	<sch:phase id="errors">

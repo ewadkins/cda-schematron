@@ -13,7 +13,7 @@ var schematron = fs.readFileSync(schematronPath, 'utf-8').toString();
 
 describe('Validator should', function() {
     var results;
-    it('return results given xml and schematron', function(done) {
+    it('return results', function(done) {
         results = validator.validate(xml, schematron);
         expect(results).to.be.an('object');
         done();
@@ -122,24 +122,6 @@ describe('Validator should', function() {
     });
     
     it('return similar results given xml filepath and schematron filepath', function(done) {
-        results = validator.validate(xmlPath, schematronPath);
-        expect(results).to.be.an('object');
-        expect(results.errorCount).to.be.a('number');
-        expect(results.warningCount).to.be.a('number');
-        expect(results.ignoredCount).to.be.a('number');
-        expect(results.errors).to.be.a('array');
-        expect(results.warnings).to.be.a('array');
-        expect(results.ignored).to.be.a('array');
-        expect(results.errorCount).to.be.equal(results.errors.length);
-        expect(results.warningCount).to.be.equal(results.warnings.length);
-        expect(results.ignoredCount).to.be.equal(results.ignored.length);
-        expect(results.errorCount).to.be.equal(16);
-        expect(results.warningCount).to.be.equal(15);
-        expect(results.ignoredCount).to.be.equal(1);
-        done();
-    });
-    
-    it('return cached schematron results more quickly', function(done) {
         results = validator.validate(xmlPath, schematronPath);
         expect(results).to.be.an('object');
         expect(results.errorCount).to.be.a('number');

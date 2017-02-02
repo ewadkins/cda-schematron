@@ -1,7 +1,10 @@
 // jshint node:true
 // jshint shadow:true
 
-module.exports = { validate: validate };
+module.exports = { 
+    validate: validate,
+    clearCache: clearCache
+};
 
 var fs = require('fs');
 var xpath = require('xpath');
@@ -13,6 +16,10 @@ var testAssertion = require('./testAssertion');
 
 // Parsed object cache
 var parsedMap = {};
+
+function clearCache() {
+    parsedMap = {};
+}
 
 function validate(xml, schematron, options) {
     // Context cache
