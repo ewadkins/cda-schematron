@@ -97,7 +97,7 @@ function validate(xml, schematron, options) {
                         var simplifiedTest = assertionResults[j].simplifiedTest;
                         var description = assertionResults[j].description;
                         var results = assertionResults[j].results;
-                        if (!results.ignored) {
+                        if (!assertionResults[j].ignored) {
                             for (var k = 0; k < results.length; k++) {
                                 var result = results[k].result;
                                 var line = results[k].line;
@@ -128,7 +128,7 @@ function validate(xml, schematron, options) {
                         }
                         else {
                             var obj = {
-                                errorMessage: results.errorMessage,
+                                errorMessage: assertionResults[j].errorMessage,
                                 type: type,
                                 test: test,
                                 simplifiedTest: simplifiedTest,
