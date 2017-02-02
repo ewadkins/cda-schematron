@@ -201,7 +201,7 @@ function validate(xml, schematron, options) {
                         test: originalTest,
                         simplifiedTest: simplifiedTest,
                         description: assertionsAndExtensions[i].description,
-                        results: testAssertion(assertionsAndExtensions[i].test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength)
+                        results: testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength)
                     });
                 }
             }
