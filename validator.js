@@ -198,7 +198,7 @@ function validate(xml, schematron, options) {
                     results.push({
                         type: type,
                         assertionId: assertionsAndExtensions[i].id,
-                        test: test,
+                        test: originalTest,
                         simplifiedTest: simplifiedTest,
                         description: assertionsAndExtensions[i].description,
                         results: testAssertion(assertionsAndExtensions[i].test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength)
