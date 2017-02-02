@@ -2,26 +2,14 @@
 // jshint shadow:true
 module.exports = testAssertion;
 
-var includeExternalDocument = require('./includeExternalDocument');
-
 function testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength) {
     var results = [];
-    
-    // Extract values from external document and modify test if a document call is made
-    var originalTest = test;
-    try {
-        test = includeExternalDocument(test, resourceDir);
-    }
-    catch (err) {
-        return { ignored: true, errorMessage: err.message };
-    }
     
     for (var i = 0; i < selected.length; i++) {
         try {
             var result = select('boolean(' + test + ')', selected[i]);
             var lineNumber = null;
             var xmlSnippet = null;
-            var modifiedTest = null;
             if (selected[i].lineNumber) {
                 lineNumber = selected[i].lineNumber;
                 xmlSnippet = selected[i].toString();
@@ -30,10 +18,7 @@ function testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMa
             if (xmlSnippet && xmlSnippet.length > maxLength) {
                 xmlSnippet = xmlSnippet.slice(0, maxLength) + '...';
             }
-            if (originalTest !== test) {
-                modifiedTest = test;
-            }
-            results.push({ result: result, line: lineNumber, path: getXPath(selected[i]), xml: xmlSnippet, modifiedTest: modifiedTest });
+            results.push({ result: result, line: lineNumber, path: getXPath(selected[i]), xml: xmlSnippet });
         }
         catch (err) {
             return { ignored: true, errorMessage: err.message };

@@ -57,7 +57,7 @@ function extract(doc) {
     // Map patterns to rules
     for (var i = 0; i < patterns.length; i++) {
         var patternId = patterns[i].getAttribute('id');
-        var defaultLevel = patternLevelMap[patternId];
+        var defaultLevel = patternLevelMap[patternId] || 'warning';
         patternRuleMap[patternId] = [];
         var rules = xpath.select('./*[local-name()="rule"]', patterns[i]);
         for (var j = 0; j < rules.length; j++) {
@@ -85,7 +85,7 @@ function getAssertionsAndExtensions(rule, defaultLevel) {
     for (var i = 0; i < assertions.length; i++) {
         var description = assertions[i].childNodes[0] ? assertions[i].childNodes[0].data : '';
         var level = defaultLevel;
-        if (level === 'warning' && description.indexOf('SHALL') !== -1
+        if (description.indexOf('SHALL') !== -1
             && (description.indexOf('SHOULD') === -1 || description.indexOf('SHALL') < description.indexOf('SHOULD'))) {
             level = 'error';
         }

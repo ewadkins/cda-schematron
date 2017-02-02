@@ -13,6 +13,7 @@ var crypto = require('crypto');
 
 var parseSchematron = require('./parseSchematron');
 var testAssertion = require('./testAssertion');
+var includeExternalDocument = require('./includeExternalDocument');
 
 // Parsed object cache
 var parsedMap = {};
@@ -93,6 +94,7 @@ function validate(xml, schematron, options) {
                         var type = assertionResults[j].type;
                         var assertionId = assertionResults[j].assertionId;
                         var test = assertionResults[j].test;
+                        var simplifiedTest = assertionResults[j].simplifiedTest;
                         var description = assertionResults[j].description;
                         var results = assertionResults[j].results;
                         if (!results.ignored) {
@@ -101,12 +103,11 @@ function validate(xml, schematron, options) {
                                 var line = results[k].line;
                                 var path = results[k].path;
                                 var xmlSnippet = results[k].xml;
-                                var modifiedTest = results[k].modifiedTest;
                                 if (!result) {
                                     var obj = {
                                         type: type,
                                         test: test,
-                                        modifiedTest: modifiedTest,
+                                        simplifiedTest: simplifiedTest,
                                         description: description,
                                         line: line,
                                         path: path,
@@ -126,17 +127,18 @@ function validate(xml, schematron, options) {
                             }
                         }
                         else {
-                            var obj2 = {
+                            var obj = {
                                 errorMessage: results.errorMessage,
                                 type: type,
                                 test: test,
+                                simplifiedTest: simplifiedTest,
                                 description: description,
                                 patternId: patternId,
                                 ruleId: ruleId,
                                 assertionId: assertionId,
                                 context: context
                             };
-                            ignored.push(obj2);
+                            ignored.push(obj);
                         }
                     }
                 }
@@ -177,11 +179,27 @@ function validate(xml, schematron, options) {
         for (var i = 0; i < assertionsAndExtensions.length; i++) {
             if (assertionsAndExtensions[i].type === 'assertion') {
                 var type = assertionsAndExtensions[i].level;
+                var test = assertionsAndExtensions[i].test;
+                
+                // Extract values from external document and modify test if a document call is made
+                var originalTest = test;
+                try {
+                    test = includeExternalDocument(test, resourceDir);
+                }
+                catch (err) {
+                    return { ignored: true, errorMessage: err.message };
+                }
+
+                var simplifiedTest = null;
+                if (originalTest !== test) {
+                    simplifiedTest = test;
+                }
                 if (type === 'error' || includeWarnings) {
                     results.push({
                         type: type,
                         assertionId: assertionsAndExtensions[i].id,
-                        test: assertionsAndExtensions[i].test,
+                        test: test,
+                        simplifiedTest: simplifiedTest,
                         description: assertionsAndExtensions[i].description,
                         results: testAssertion(assertionsAndExtensions[i].test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength)
                     });
