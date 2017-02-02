@@ -13,12 +13,27 @@ npm install cda-schematron
 ```javascript
 var validator = require('cda-schematron');
 
+var xmlPath = 'someFile.xml';
+var schematronPath = 'someFile.sch';
+
 var fs = require('fs');
 var xml = fs.readFileSync(xmlPath).toString();
 var schematron = fs.readFileSync(schematronPath).toString();
 
 var results = validator.validate(xml, schematron);
 ```
+File paths can also be passed to the validator directly. The following lines all return the same results:
+```javascript
+var results = validator.validate(xml, schematronPath);
+```
+```javascript
+var results = validator.validate(xmlPath, schematron);
+```
+```javascript
+var results = validator.validate(xmlPath, schematronPath);
+```
+
+### Results
 ```results``` is an object containing arrays  ```errors```, ```warnings```, and ```ignoreds```.
 
 **Errors** and **warnings** are reported as determined by the schematron and test descriptions.
