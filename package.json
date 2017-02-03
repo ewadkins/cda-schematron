@@ -1,6 +1,6 @@
 {
   "name": "cda-schematron",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A javascript implementation of schematron testing for XML documents. This specifically resolves a need for a package that allows a quick, reliable install for validating HL7 clinical documents, such as C-CDA.",
   "main": "validator.js",
   "scripts": {
