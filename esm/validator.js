@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -7,31 +6,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const parseSchematron_1 = require("./parseSchematron");
-const testAssertion_1 = require("./testAssertion");
-const xpath = require("xpath");
-const sha1_1 = require("./sha1");
+import parseSchematron from "./parseSchematron";
+import testAssertion from "./testAssertion";
+import * as xpath from "xpath";
+import sha1 from "./sha1";
 let dom;
 if (typeof DOMParser === "undefined") {
-    dom = Promise.resolve().then(() => require("xmldom")).then((x) => x.DOMParser);
+    dom = import("xmldom").then((x) => x.DOMParser);
 }
 else {
     dom = Promise.resolve(DOMParser);
 }
 // Parsed object cache
 const parsedMap = new Map();
-function clearCache() {
+export function clearCache() {
     parsedMap.clear();
 }
-exports.clearCache = clearCache;
 function isRuleIgnored(result) {
     return result.ignored || false;
 }
 function isAssertionIgnored(results) {
     return results.ignored || false;
 }
-function validate(xml, schematron, options) {
+export function validate(xml, schematron, options) {
     return __awaiter(this, void 0, void 0, function* () {
         const opts = options || {};
         const includeWarnings = opts.includeWarnings === undefined ? true : Boolean(opts.includeWarnings);
@@ -40,7 +37,7 @@ function validate(xml, schematron, options) {
         // If not validate xml, it might be a filepath
         if (xml.trim().indexOf("<") !== 0) {
             try {
-                const { readFile } = yield Promise.resolve().then(() => require("fs"));
+                const { readFile } = yield import("fs");
                 xml = yield new Promise((o, r) => readFile(xml, "utf-8", (err, data) => {
                     if (err) {
                         r(err);
@@ -60,7 +57,7 @@ function validate(xml, schematron, options) {
         let schematronPath = null;
         if (schematron.trim().indexOf("<") !== 0) {
             try {
-                const { readFile } = yield Promise.resolve().then(() => require("fs"));
+                const { readFile } = yield import("fs");
                 const temp = schematron;
                 schematron = yield new Promise((o, r) => readFile(schematron, "utf-8", (err, data) => {
                     if (err) {
@@ -81,10 +78,10 @@ function validate(xml, schematron, options) {
         // Load xml doc
         const DOM = yield dom;
         const xmlDoc = new DOM().parseFromString(xml, "application/xml");
-        const hash = yield sha1_1.default(schematron);
+        const hash = yield sha1(schematron);
         const { namespaceMap, patternRuleMap, ruleAssertionMap } = parsedMap.get(hash) || (() => {
             // Load schematron doc
-            const d = parseSchematron_1.default(new DOM().parseFromString(schematron, "application/xml"));
+            const d = parseSchematron(new DOM().parseFromString(schematron, "application/xml"));
             // Cache parsed schematron
             parsedMap.set(hash, d);
             return d;
@@ -181,7 +178,6 @@ function validate(xml, schematron, options) {
         };
     });
 }
-exports.validate = validate;
 // tslint:disable-next-line:max-line-length
 function checkRule(state, ruleId, ruleAssertion, contextOverride) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -211,7 +207,7 @@ function checkRule(state, ruleId, ruleAssertion, contextOverride) {
                 const originalTest = test;
                 if (/=document\((\'[-_.A-Za-z0-9]+\'|\"[-_.A-Za-z0-9]+\")\)/.test(test)) {
                     try {
-                        const includeExternalDocument = yield Promise.resolve().then(() => require("./includeExternalDocument")).then((x) => x.default);
+                        const includeExternalDocument = yield import("./includeExternalDocument").then((x) => x.default);
                         test = yield includeExternalDocument(state.DOM, test, state.resourceDir);
                     }
                     catch (err) {
@@ -232,7 +228,7 @@ function checkRule(state, ruleId, ruleAssertion, contextOverride) {
                     simplifiedTest = test;
                 }
                 if (level === "error" || state.includeWarnings) {
-                    const result = testAssertion_1.default(test, selected, state.select, state.document, state.resourceDir, state.xmlSnippetMaxLength);
+                    const result = testAssertion(test, selected, state.select, state.document, state.resourceDir, state.xmlSnippetMaxLength);
                     results.push({
                         assertionId: assorext.id,
                         description: assorext.description,

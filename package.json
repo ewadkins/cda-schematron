@@ -1,16 +1,27 @@
 {
   "name": "cda-schematron",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "A javascript implementation of schematron testing for XML documents. This specifically resolves a need for a package that allows a quick, reliable install for validating HL7 clinical documents, such as C-CDA.",
-  "main": "validator.js",
+  "main": "./umd/validator.js",
+  "module": "./esm/validator.js",
+  "types": "./esm/validator.d.ts",
   "scripts": {
-    "test": "grunt"
+    "test": "grunt",
+    "build": "npm run build-umd && npm run build-esnext",
+    "build-umd": "tsc -p tsconfig.json",
+    "build-esnext": "tsc -p tsconfig.json --module esnext --outDir esm"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ewadkins/cda-schematron.git"
   },
   "author": "Eric Wadkins",
+  "contributors": [
+    {
+      "name": "Tim Lundqvist",
+      "url": "https://github.com/TimLuq"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ewadkins/cda-schematron/issues"
@@ -21,11 +32,13 @@
     "grunt": "^1.0.1",
     "grunt-contrib-jshint": "^1.1.0",
     "grunt-mocha-test": "^0.13.2",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "typescript": "^2.7.2",
+    "@types/xmldom": "^0.1.29",
+    "@types/node": "^9.4.7"
   },
   "dependencies": {
-    "crypto": "0.0.3",
-    "xmldom": "0.1.27",
-    "xpath": "0.0.23"
+    "xmldom": "^0.1.27",
+    "xpath": "^0.0.27"
   }
 }

@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -7,15 +6,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 // jshint node:true
 // jshint shadow:true
 module.exports = modifyTest;
-const fs_1 = require("fs");
-const path_1 = require("path");
-const xpath = require("xpath");
+import { readFile } from "fs";
+import { resolve as path_resolve } from "path";
+import * as xpath from "xpath";
 const loadedExternalDocuments = new Map();
-function modifyTest(dom, test, resourceDir) {
+export default function modifyTest(dom, test, resourceDir) {
     return __awaiter(this, void 0, void 0, function* () {
         let matches = /=document\((\'[-_.A-Za-z0-9]+\'|\"[-_.A-Za-z0-9]+\")\)/.exec(test);
         while (matches) {
@@ -51,7 +49,7 @@ function modifyTest(dom, test, resourceDir) {
             }
             const predicate = test.slice(start, end);
             // Load external doc (load from "cache" if already loaded)
-            const filepath = path_1.resolve(resourceDir, matches[1].slice(1, -1));
+            const filepath = path_resolve(resourceDir, matches[1].slice(1, -1));
             let externalDocP = loadedExternalDocuments.get(filepath);
             if (!externalDocP) {
                 externalDocP = loadXML(dom, filepath);
@@ -87,13 +85,12 @@ function modifyTest(dom, test, resourceDir) {
         return test;
     });
 }
-exports.default = modifyTest;
 function loadXML(dom, path) {
     return __awaiter(this, void 0, void 0, function* () {
         let externalXml = null;
         try {
             externalXml = yield new Promise((s, r) => {
-                fs_1.readFile(path, "utf-8", (err, data) => {
+                readFile(path, "utf-8", (err, data) => {
                     if (err) {
                         r(err);
                     }

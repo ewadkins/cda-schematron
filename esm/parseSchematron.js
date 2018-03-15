@@ -1,6 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const xpath = require("xpath");
+import * as xpath from "xpath";
 function* getNamedChildren(parent, localName, ns) {
     const children = parent.childNodes;
     // tslint:disable-next-line:prefer-for-of
@@ -11,7 +9,7 @@ function* getNamedChildren(parent, localName, ns) {
         }
     }
 }
-function parseSchematron(doc) {
+export default function parseSchematron(doc) {
     const namespaceMap = new Map();
     const patternLevelMap = new Map();
     const patternRuleMap = new Map();
@@ -79,7 +77,6 @@ function parseSchematron(doc) {
         ruleAssertionMap,
     };
 }
-exports.default = parseSchematron;
 function getAssertionsAndExtensions(rule, defaultLevel) {
     const assertionsAndExtensions = [];
     // Find and store assertions

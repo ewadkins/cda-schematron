@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Test an asertion for a selection of nodes.
  *
@@ -10,7 +8,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @param resourceDir a directory path
  * @param xmlSnippetMaxLength max length of the snippet to be returned
  */
-function testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength) {
+export default function testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength) {
     const results = [];
     for (const sel of selected) {
         try {
@@ -38,7 +36,6 @@ function testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMa
     }
     return results;
 }
-exports.default = testAssertion;
 /**
  * Generate an absolute XPath to an element.
  * @param node Node to compute XPath to element for
