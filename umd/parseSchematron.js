@@ -129,7 +129,7 @@ function getAssertionsAndExtensions(rule, defaultLevel) {
     // Find and store assertions
     const assertions = xpath.select('./*[local-name()="assert"]', rule);
     for (const assertion of assertions) {
-        const description = assertion.textContent || "";
+        const description = getDescription(assertion.childNodes);
         let level = defaultLevel;
         if (description.indexOf("SHALL") !== -1
             && (description.indexOf("SHOULD") === -1 || description.indexOf("SHALL") < description.indexOf("SHOULD"))) {
@@ -162,6 +162,33 @@ function getAssertionsAndExtensions(rule, defaultLevel) {
         });
     }
     return assertionsAndExtensions;
+}
+function getDescription(nodeList) {
+    const desc = [];
+    // tslint:disable-next-line:prefer-for-of
+    for (let i = 0; i < nodeList.length; i++) {
+        const node = nodeList[i];
+        if (node.nodeType === 3) {
+            const v = node.nodeValue && node.nodeValue.trim();
+            if (v) {
+                desc.push(v);
+            }
+        }
+        else if (node.nodeType === 4) {
+            const v = node.nodeValue && node.nodeValue.trim();
+            if (v) {
+                desc.push(v);
+            }
+        }
+        else if (node.nodeType === 1 && node.namespaceURI === null) {
+            const e = node;
+            const n = e.localName;
+            if (n === "name") {
+                desc.push({ tag: "name" });
+            }
+        }
+    }
+    return desc;
 }
 function parseAbstract(str) {
     if (str === "true" || str === "yes") {

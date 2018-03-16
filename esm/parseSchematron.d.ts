@@ -1,3 +1,7 @@
+export interface IDescriptionName {
+    tag: "name";
+}
+export declare type IDescription = string | IDescriptionName;
 export declare type IAssertionOrExtension = IAssertion | IExtension;
 export interface IExtension {
     type: "extension";
@@ -8,7 +12,7 @@ export interface IAssertion {
     level: "error" | "warning";
     id: string;
     test: string;
-    description: string;
+    description: IDescription[];
 }
 export interface IRule {
     abstract: boolean;

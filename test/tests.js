@@ -135,3 +135,63 @@ describe('Validator should', function() {
         expect(results.ignoredCount).to.be.equal(1);
     });
 });
+
+
+
+describe('Test2 should', function() {
+    (function (results) {
+        it('return results', async function() {
+            results = await validator.validate('./test/test-2.xml', './test/test-2.sch');
+            expect(results).to.be.an('object');
+            // console.log("Test2:", results);
+        });
+        it('return errorCount', function(done) {
+            expect(results.errorCount).to.be.a('number');
+            done();
+        });
+        it('return warningCount', function(done) {
+            expect(results.warningCount).to.be.a('number');
+            done();
+        });
+        it('return ignoredCount', function(done) {
+            expect(results.ignoredCount).to.be.a('number');
+            done();
+        });
+        it('return errors array', function(done) {
+            expect(results.errors).to.be.a('array');
+            done();
+        });
+        it('return warnings array', function(done) {
+            expect(results.warnings).to.be.a('array');
+            done();
+        });
+        it('return ignored array', function(done) {
+            expect(results.ignored).to.be.a('array');
+            done();
+        });
+        it('return matching errorCount', function(done) {
+            expect(results.errorCount).to.be.equal(results.errors.length);
+            done();
+        });
+        it('return matching warningCount', function(done) {
+            expect(results.warningCount).to.be.equal(results.warnings.length);
+            done();
+        });
+        it('return matching ignoredCount', function(done) {
+            expect(results.ignoredCount).to.be.equal(results.ignored.length);
+            done();
+        });
+        it('return correct number of errors', function(done) {
+            expect(results.errorCount).to.be.equal(1);
+            done();
+        });
+        it('return correct number of warnings', function(done) {
+            expect(results.warningCount).to.be.equal(0);
+            done();
+        });
+        it('return correct number of ignored', function(done) {
+            expect(results.ignoredCount).to.be.equal(0);
+            done();
+        });
+    })(null);
+});

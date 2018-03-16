@@ -230,7 +230,7 @@ function checkRule(state, rule, ruleMap, contextOverride) {
                     const result = testAssertion(test, selected, state.select, state.document, state.resourceDir, state.xmlSnippetMaxLength);
                     results.push({
                         assertionId: assorext.id,
-                        description: assorext.description,
+                        description: getDescription(assorext, result),
                         results: result,
                         simplifiedTest,
                         test: originalTest,
@@ -251,5 +251,21 @@ function checkRule(state, rule, ruleMap, contextOverride) {
         }
         return results;
     });
+}
+function getDescription(assorext, result) {
+    return assorext.description.map((d) => {
+        if (typeof d === "string") {
+            return d;
+        }
+        if (d.tag === "name") {
+            if (isAssertionIgnored(result)) {
+                return "<name />";
+            }
+            else {
+                return result[0].path.replace(/^.*\//, "").replace(/\[.*$/, "");
+            }
+        }
+        return "";
+    }).join(" ");
 }
 //# sourceMappingURL=validator.js.map

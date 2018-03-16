@@ -1,5 +1,5 @@
 
-import parseSchematron, { IParsedSchematron, IRule } from "./parseSchematron";
+import parseSchematron, { IParsedSchematron, IRule, IAssertion } from "./parseSchematron";
 import testAssertion, { ITestAssertionError, ITestAssertionResult } from "./testAssertion";
 
 import { loadXML, replaceTestWithExternalDocument, schematronIncludes } from "./includeExternalDocument";
@@ -297,7 +297,7 @@ async function checkRule(state: IContextState, rule: IRule, ruleMap: Map<string,
                         state.document, state.resourceDir, state.xmlSnippetMaxLength);
                 results.push({
                     assertionId: assorext.id,
-                    description: assorext.description,
+                    description: getDescription(assorext, result),
                     results: result,
                     simplifiedTest,
                     test: originalTest,
@@ -315,4 +315,20 @@ async function checkRule(state: IContextState, rule: IRule, ruleMap: Map<string,
         }
     }
     return results;
+}
+
+function getDescription(assorext: IAssertion, result: ITestAssertionError | ITestAssertionResult[]): string {
+    return assorext.description.map((d) => {
+        if (typeof d === "string") {
+            return d;
+        }
+        if (d.tag === "name") {
+            if (isAssertionIgnored(result)) {
+                return "<name />";
+            } else {
+                return result[0].path.replace(/^.*\//, "").replace(/\[.*$/, "");
+            }
+        }
+        return "";
+    }).join(" ");
 }
