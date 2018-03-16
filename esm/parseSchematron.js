@@ -1,4 +1,4 @@
-import * as xpath from "xpath";
+import xpath from "./xpathHelper";
 function* getNamedChildren(parent, localName, ns) {
     const children = parent.childNodes;
     // tslint:disable-next-line:prefer-for-of
@@ -97,7 +97,7 @@ export default function parseSchematron(doc) {
         patternRuleMap.set(patternId, base.map((rule) => {
             return Object.assign({}, rule, { assertionsAndExtensions: rule.assertionsAndExtensions.map((aoe) => {
                     if (aoe.type === "assertion") {
-                        return Object.assign({}, aoe, { test: normalizeBuiltin(replaceParams(params, aoe.test)) });
+                        return Object.assign({}, aoe, { test: replaceParams(params, aoe.test) });
                     }
                     return aoe;
                 }), context: rule.context && replaceParams(params, rule.context) });
@@ -146,7 +146,7 @@ function getAssertionsAndExtensions(rule, defaultLevel) {
             description,
             id: assertion.getAttribute("id"),
             level,
-            test: normalizeBuiltin(assertion.getAttribute("test")),
+            test: assertion.getAttribute("test"),
             type: "assertion",
         });
     }
@@ -198,16 +198,5 @@ function parseAbstract(str) {
 }
 function parseContext(str) {
     return str || null;
-}
-function normalizeBuiltin(data) {
-    if (!data) {
-        return data;
-    }
-    const parts = data.split("'");
-    for (let i = 0; i < parts.length; i += 2) {
-        // tslint:disable-next-line:max-line-length
-        parts[i] = parts[i].replace(/\bxsi?:(decimal|string|boolean|float|double|date|duration|dateTime|time|gYearMonth|gYear|gMonthDay|gDay|gMonth|hexBinary|base64Binary|anyURI|QName|NOTATION)\(/g, (f, p) => p + "(");
-    }
-    return parts.join("'");
 }
 //# sourceMappingURL=parseSchematron.js.map

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const xpath = require("xpath");
+const xpathHelper_1 = require("./xpathHelper");
 function* getNamedChildren(parent, localName, ns) {
     const children = parent.childNodes;
     // tslint:disable-next-line:prefer-for-of
@@ -19,7 +19,7 @@ function parseSchematron(doc) {
     const patternRuleMap = new Map();
     const ruleMap = new Map();
     //// Namespace mapping
-    const namespaces = xpath.select('//*[local-name()="ns"]', doc);
+    const namespaces = xpathHelper_1.default.select('//*[local-name()="ns"]', doc);
     for (const namespace of namespaces) {
         const pf = namespace.getAttribute("prefix");
         const ns = namespace.getAttribute("uri");
@@ -29,7 +29,7 @@ function parseSchematron(doc) {
     }
     //// Pattern to level mapping
     // Find errors phases
-    const errorPhase = xpath.select('//*[local-name()="phase" and @id="errors"]', doc);
+    const errorPhase = xpathHelper_1.default.select('//*[local-name()="phase" and @id="errors"]', doc);
     // Store error patterns
     if (errorPhase.length) {
         for (const child of getNamedChildren(errorPhase[0], "active")) {
@@ -40,7 +40,7 @@ function parseSchematron(doc) {
         }
     }
     // Find errors phases
-    const warningPhase = xpath.select('//*[local-name()="phase" and @id="warnings"]', doc);
+    const warningPhase = xpathHelper_1.default.select('//*[local-name()="phase" and @id="warnings"]', doc);
     // Store warning patterns
     if (warningPhase.length) {
         for (const child of getNamedChildren(warningPhase[0], "active")) {
@@ -52,7 +52,7 @@ function parseSchematron(doc) {
     }
     //// Pattern to rule and rule to assertion mapping
     // Find patterns
-    const patterns = xpath.select('//*[local-name()="pattern"]', doc);
+    const patterns = xpathHelper_1.default.select('//*[local-name()="pattern"]', doc);
     // Map patterns to rules
     for (const pattern of patterns) {
         const patternId = pattern.getAttribute("id");
@@ -64,7 +64,7 @@ function parseSchematron(doc) {
             }
             const isA = pattern.getAttribute("is-a");
             if (isA) {
-                const params = xpath.select('./*[local-name()="param"]', pattern).reduce((m, e) => {
+                const params = xpathHelper_1.default.select('./*[local-name()="param"]', pattern).reduce((m, e) => {
                     const n = e.getAttribute("name");
                     if (n) {
                         m.set(n, e.getAttribute("value") || "");
@@ -76,7 +76,7 @@ function parseSchematron(doc) {
             }
             patternRuleMap.set(patternId, parsedRules);
         }
-        const rules = xpath.select('./*[local-name()="rule"]', pattern);
+        const rules = xpathHelper_1.default.select('./*[local-name()="rule"]', pattern);
         for (const rule of rules) {
             const ruleId = rule.getAttribute("id") || undefined;
             const obj = {
@@ -99,7 +99,7 @@ function parseSchematron(doc) {
         patternRuleMap.set(patternId, base.map((rule) => {
             return Object.assign({}, rule, { assertionsAndExtensions: rule.assertionsAndExtensions.map((aoe) => {
                     if (aoe.type === "assertion") {
-                        return Object.assign({}, aoe, { test: normalizeBuiltin(replaceParams(params, aoe.test)) });
+                        return Object.assign({}, aoe, { test: replaceParams(params, aoe.test) });
                     }
                     return aoe;
                 }), context: rule.context && replaceParams(params, rule.context) });
@@ -127,7 +127,7 @@ function replaceParams(params, content) {
 function getAssertionsAndExtensions(rule, defaultLevel) {
     const assertionsAndExtensions = [];
     // Find and store assertions
-    const assertions = xpath.select('./*[local-name()="assert"]', rule);
+    const assertions = xpathHelper_1.default.select('./*[local-name()="assert"]', rule);
     for (const assertion of assertions) {
         const description = getDescription(assertion.childNodes);
         let level = defaultLevel;
@@ -149,12 +149,12 @@ function getAssertionsAndExtensions(rule, defaultLevel) {
             description,
             id: assertion.getAttribute("id"),
             level,
-            test: normalizeBuiltin(assertion.getAttribute("test")),
+            test: assertion.getAttribute("test"),
             type: "assertion",
         });
     }
     // Find and store extensions
-    const extensions = xpath.select('./*[local-name()="extends"]', rule);
+    const extensions = xpathHelper_1.default.select('./*[local-name()="extends"]', rule);
     for (const extension of extensions) {
         assertionsAndExtensions.push({
             rule: extension.getAttribute("rule"),
@@ -201,16 +201,5 @@ function parseAbstract(str) {
 }
 function parseContext(str) {
     return str || null;
-}
-function normalizeBuiltin(data) {
-    if (!data) {
-        return data;
-    }
-    const parts = data.split("'");
-    for (let i = 0; i < parts.length; i += 2) {
-        // tslint:disable-next-line:max-line-length
-        parts[i] = parts[i].replace(/\bxsi?:(decimal|string|boolean|float|double|date|duration|dateTime|time|gYearMonth|gYear|gMonthDay|gDay|gMonth|hexBinary|base64Binary|anyURI|QName|NOTATION)\(/g, (f, p) => p + "(");
-    }
-    return parts.join("'");
 }
 //# sourceMappingURL=parseSchematron.js.map

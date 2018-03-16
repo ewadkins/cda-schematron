@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import parseSchematron from "./parseSchematron";
 import testAssertion from "./testAssertion";
 import { loadXML, replaceTestWithExternalDocument, schematronIncludes } from "./includeExternalDocument";
-import * as xpath from "xpath";
+import xpath from "./xpathHelper";
 import sha1 from "./sha1";
 let dom;
 if (typeof DOMParser === "undefined") {

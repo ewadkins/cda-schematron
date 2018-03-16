@@ -11,7 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const parseSchematron_1 = require("./parseSchematron");
 const testAssertion_1 = require("./testAssertion");
 const includeExternalDocument_1 = require("./includeExternalDocument");
-const xpath = require("xpath");
+const xpathHelper_1 = require("./xpathHelper");
 const sha1_1 = require("./sha1");
 let dom;
 if (typeof DOMParser === "undefined") {
@@ -107,7 +107,7 @@ function validate(xml, schematron, options) {
             document: xmlDoc,
             includeWarnings,
             resourceDir,
-            select: xpath.useNamespaces(nsObj),
+            select: xpathHelper_1.default.useNamespaces(nsObj),
             xmlSnippetMaxLength,
         };
         for (const [patternId, rules] of patternRuleMap.entries()) {

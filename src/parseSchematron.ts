@@ -1,4 +1,4 @@
-import * as xpath from "xpath";
+import xpath from "./xpathHelper";
 
 function* getNamedChildren(parent: Element, localName: string, ns?: string): IterableIterator<Element> {
     const children = parent.childNodes;
@@ -150,7 +150,7 @@ export default function parseSchematron(doc: Document) {
                     if (aoe.type === "assertion") {
                         return {
                             ...aoe,
-                            test: normalizeBuiltin(replaceParams(params, aoe.test)),
+                            test: replaceParams(params, aoe.test),
                         };
                     }
                     return aoe;
@@ -206,7 +206,7 @@ function getAssertionsAndExtensions(rule: Element, defaultLevel: "warning" | "er
             description,
             id: assertion.getAttribute("id") as string,
             level,
-            test: normalizeBuiltin(assertion.getAttribute("test") as string),
+            test: assertion.getAttribute("test") as string,
             type: "assertion",
         });
     }
@@ -261,16 +261,4 @@ function parseAbstract(str: string | null) {
 
 function parseContext(str: string | null) {
     return str || null;
-}
-
-function normalizeBuiltin(data: string) {
-    if (!data) {
-        return data;
-    }
-    const parts = data.split("'");
-    for (let i = 0; i < parts.length; i += 2) {
-        // tslint:disable-next-line:max-line-length
-        parts[i] = parts[i].replace(/\bxsi?:(decimal|string|boolean|float|double|date|duration|dateTime|time|gYearMonth|gYear|gMonthDay|gDay|gMonth|hexBinary|base64Binary|anyURI|QName|NOTATION)\(/g, (f, p) => p + "(");
-    }
-    return parts.join("'");
 }

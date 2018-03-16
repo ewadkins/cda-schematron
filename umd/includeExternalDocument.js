@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const xpath = require("xpath");
+const xpathHelper_1 = require("./xpathHelper");
 const loadedExternalDocuments = new Map();
 function replaceTestWithExternalDocument(dom, test, resourceDir) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -64,7 +64,7 @@ function replaceTestWithExternalDocument(dom, test, resourceDir) {
                     namespaceMap[attr.prefix] = attr.nodeValue;
                 }
             }
-            const externalSelect = xpath.useNamespaces(namespaceMap);
+            const externalSelect = xpathHelper_1.default.useNamespaces(namespaceMap);
             // Create new predicate from extract values
             const values = [];
             const externalResults = externalSelect(externalXpath, externalDoc);
@@ -176,7 +176,7 @@ function loadXmlFile(dom, path) {
 function schematronIncludes(dom, doc, uri, loadStack) {
     return __awaiter(this, void 0, void 0, function* () {
         const lstack = loadStack || [];
-        const sel = xpath.useNamespaces({ sch: "http://purl.oclc.org/dsdl/schematron" });
+        const sel = xpathHelper_1.default.useNamespaces({ sch: "http://purl.oclc.org/dsdl/schematron" });
         const includes = sel("//sch:include", doc).map((e) => {
             const href = e.getAttribute("href");
             if (!href) {

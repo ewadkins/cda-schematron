@@ -4,7 +4,8 @@ import testAssertion, { ITestAssertionError, ITestAssertionResult } from "./test
 
 import { loadXML, replaceTestWithExternalDocument, schematronIncludes } from "./includeExternalDocument";
 
-import * as xpath from "xpath";
+import { XPathSelect } from "xpath";
+import xpath from "./xpathHelper";
 
 import sha1 from "./sha1";
 
@@ -46,7 +47,7 @@ interface IContextState extends IValidateOptions {
     contexts: Map<string, Node[]>;
     document: Document;
     DOM: { new(): DOMParser; };
-    select: xpath.XPathSelect;
+    select: XPathSelect;
 }
 
 interface IRuleResult {
