@@ -110,7 +110,8 @@ const stdResolveFunction = xpath.FunctionResolver.prototype.getFunction;
 xpath.FunctionResolver.prototype.getFunction =
   function getFunction(this: XPathExports.FunctionResolver, localName: string, namespace: string) {
     const r = stdResolveFunction.call(this, localName, namespace);
-    if (!r && namespace === "http://www.w3.org/2001/XMLSchema-datatypes") {
+    // tslint:disable-next-line:max-line-length
+    if (!r && (namespace === "http://www.w3.org/2001/XMLSchema-datatypes" || namespace === "http://www.w3.org/2001/XMLSchema")) {
         return xsFuncs.get(localName) || undefined;
     }
     return r;
