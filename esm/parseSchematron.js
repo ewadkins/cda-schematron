@@ -183,6 +183,9 @@ function getDescription(nodeList) {
             if (n === "name") {
                 desc.push({ tag: "name" });
             }
+            else if (n === "value-of") {
+                desc.push({ tag: "value-of" });
+            }
         }
     }
     return desc;

@@ -91,7 +91,10 @@ function validate(xml, schematron, options) {
         }
         const { namespaceMap, patternRuleMap, ruleMap } = yield parsedSchematron;
         // Create selector object, initialized with namespaces
-        const nsObj = {};
+        const nsObj = {
+            xs: "http://www.w3.org/2001/XMLSchema-datatypes",
+            xsi: "http://www.w3.org/2001/XMLSchema-datatypes",
+        };
         for (const [nspf, uri] of namespaceMap.entries()) {
             nsObj[nspf] = uri;
         }

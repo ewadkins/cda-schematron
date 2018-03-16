@@ -1,7 +1,10 @@
 export interface IDescriptionName {
     tag: "name";
 }
-export declare type IDescription = string | IDescriptionName;
+export interface IDescriptionValueOf {
+    tag: "value-of";
+}
+export declare type IDescription = string | IDescriptionName | IDescriptionValueOf;
 export declare type IAssertionOrExtension = IAssertion | IExtension;
 export interface IExtension {
     type: "extension";

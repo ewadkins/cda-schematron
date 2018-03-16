@@ -151,7 +151,10 @@ export async function validate(xml: string, schematron: string, options?: Partia
     const { namespaceMap, patternRuleMap, ruleMap } = await parsedSchematron;
 
     // Create selector object, initialized with namespaces
-    const nsObj: { [k: string]: string; } = {};
+    const nsObj: { [k: string]: string; } = {
+        xs: "http://www.w3.org/2001/XMLSchema-datatypes",
+        xsi: "http://www.w3.org/2001/XMLSchema-datatypes",
+    };
     for (const [nspf, uri] of namespaceMap.entries()) {
         nsObj[nspf] = uri;
     }

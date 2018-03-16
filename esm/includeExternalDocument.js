@@ -49,7 +49,10 @@ export function replaceTestWithExternalDocument(dom, test, resourceDir) {
             const externalXpath = test.slice(equalInd + matches[0].length, end);
             // Extract namespaces
             const defaultNamespaceKey = (/([^(<>.\/)]+):[^(<>.\/)]+/.exec(externalXpath) || [])[1];
-            const namespaceMap = {};
+            const namespaceMap = {
+                xs: "http://www.w3.org/2001/XMLSchema-datatypes",
+                xsi: "http://www.w3.org/2001/XMLSchema-datatypes",
+            };
             const docattrs = Array.from(externalDoc.documentElement.attributes);
             for (const attr of docattrs) {
                 if (attr.nodeName === "xmlns") {
