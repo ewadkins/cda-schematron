@@ -28,16 +28,18 @@
   },
   "homepage": "https://github.com/ewadkins/cda-schematron#readme",
   "devDependencies": {
+    "@types/node": "^9.4.7",
+    "@types/node-fetch": "^1.6.7",
+    "@types/xmldom": "^0.1.29",
     "chai": "^3.5.0",
     "grunt": "^1.0.1",
     "grunt-contrib-jshint": "^1.1.0",
     "grunt-mocha-test": "^0.13.2",
     "mocha": "^3.2.0",
-    "typescript": "^2.7.2",
-    "@types/xmldom": "^0.1.29",
-    "@types/node": "^9.4.7"
+    "typescript": "^2.7.2"
   },
   "dependencies": {
+    "node-fetch": "^2.1.1",
     "xmldom": "^0.1.27",
     "xpath": "^0.0.27"
   }

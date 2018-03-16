@@ -1,15 +1,8 @@
-// jshint node:true
-// jshint shadow:true
-module.exports = modifyTest;
-
-import { readFile } from "fs";
-import { resolve as path_resolve } from "path";
-
 import * as xpath from "xpath";
 
 const loadedExternalDocuments = new Map<string, Promise<Document>>();
 
-export default async function modifyTest(dom: { new(): DOMParser; }, test: string, resourceDir: string) {
+export async function replaceTestWithExternalDocument(dom: { new(): DOMParser; }, test: string, resourceDir: string) {
 
     let matches = /=document\((\'[-_.A-Za-z0-9]+\'|\"[-_.A-Za-z0-9]+\")\)/.exec(test);
     while (matches) {
@@ -47,13 +40,8 @@ export default async function modifyTest(dom: { new(): DOMParser; }, test: strin
         const predicate = test.slice(start, end);
 
         // Load external doc (load from "cache" if already loaded)
-        const filepath = path_resolve(resourceDir, matches[1].slice(1, -1));
-        let externalDocP = loadedExternalDocuments.get(filepath) as Promise<Document>;
-        if (!externalDocP) {
-            externalDocP = loadXML(dom, filepath);
-            loadedExternalDocuments.set(filepath, externalDocP);
-        }
-        const externalDoc = await externalDocP;
+        const filepath = matches[1].slice(1, -1);
+        const externalDoc = await loadXML(dom, resourceDir, filepath, []);
 
         const externalXpath = test.slice(equalInd + matches[0].length, end);
 
@@ -89,7 +77,76 @@ export default async function modifyTest(dom: { new(): DOMParser; }, test: strin
     return test;
 }
 
-async function loadXML(dom: { new(): DOMParser; }, path: string) {
+export function loadXML(dom: { new(): DOMParser; }, relbase: string, reluri: string, loadStack?: string[]) {
+    let uri = reluri;
+
+    // resolve relative
+    if (/^[^:\\\/#]+(?:\\|\/|#|$)/.test(uri)) {
+        uri = "./" + uri;
+    }
+    if (/^\.\.?[\\\/]/.test(uri)) {
+        let partbase = relbase.replace(/[^\\\/]+$/, "");
+        let lastBase;
+        let lastUri;
+        do {
+            do {
+                lastUri = uri;
+                uri = uri.replace(/^\.[\\\/]/, "");
+            } while (lastUri !== uri);
+
+            lastBase = partbase;
+            if (/^\.\.[\\\/]/.test(uri)) {
+                partbase = partbase.replace(/[^\\\/]+[\\\/]$/, "");
+                uri = uri.substring(3);
+            }
+        } while (lastBase !== partbase || lastUri !== uri);
+        uri = partbase + uri;
+    }
+
+    // check if circular
+    let myLoadStack: string[];
+    if (!loadStack) {
+        myLoadStack = [uri];
+    } else {
+        if (loadStack.indexOf(uri) !== -1) {
+            throw new Error("Circular includes for file path: "
+                            + loadStack.map((s) => JSON.stringify(s)).join(" -> ") + " -> " + JSON.stringify(uri));
+        }
+        myLoadStack = [...loadStack, uri];
+    }
+
+    // load file content
+    const lookupKey = (!loadStack ? "s" : "d") + uri;
+    let prom = loadedExternalDocuments.get(lookupKey);
+    if (prom) {
+        return prom;
+    }
+    if (/^(?:https?|file):\/\//.test(uri)) {
+        prom = loadXmlUrl(dom, uri);
+    } else {
+        prom = loadXmlFile(dom, uri);
+    }
+    if (loadStack) {
+        prom = prom.then((doc) => schematronIncludes(dom, doc, uri, myLoadStack));
+    }
+    loadedExternalDocuments.set(lookupKey, prom);
+    return prom;
+}
+
+async function loadXmlUrl(dom: { new(): DOMParser; }, url: string) {
+    let f: (url: string) => Promise<{ text(): Promise<string>; }>;
+    if (typeof fetch === "undefined") {
+        f = await import("node-fetch").then((nf) => nf.default);
+    } else {
+        f = fetch;
+    }
+    return f(url).then((r) => r.text()).then((t) => {
+        return new dom().parseFromString(t, "application/xml");
+    });
+}
+
+async function loadXmlFile(dom: { new(): DOMParser; }, path: string) {
+    const { readFile } = await import("fs");
     let externalXml = null;
     try {
         externalXml = await new Promise<string>((s, r) => {
@@ -107,4 +164,28 @@ async function loadXML(dom: { new(): DOMParser; }, path: string) {
         throw ne;
     }
     return new dom().parseFromString(externalXml, "application/xml");
+}
+
+export async function schematronIncludes(dom: { new(): DOMParser; }, doc: Document, uri: string, loadStack?: string[]) {
+    const lstack = loadStack || [];
+    const sel = xpath.useNamespaces({sch: "http://purl.oclc.org/dsdl/schematron"});
+    const includes = (sel("//sch:include", doc) as Element[]).map((e) => {
+        const href = e.getAttribute("href");
+        if (!href) {
+            return null;
+        }
+        return [e, href, loadXML(dom, uri, href, lstack)] as [Element, string, Promise<Document>];
+    }).filter((e) => Boolean(e)) as Array<[Element, string, Promise<Document>]>;
+
+    for (const [e, href, subdocP] of includes) {
+        const subdoc = await subdocP;
+        const ins = doc.importNode<Element>(subdoc.documentElement, true);
+        const comment = "sch:include(" + JSON.stringify(href) + ") ";
+        const parent = e.parentNode as Element;
+        parent.insertBefore(doc.createComment(" BEGIN:" + comment), e);
+        parent.insertBefore(ins, e);
+        parent.insertBefore(doc.createComment(" END:" + comment), e);
+        parent.removeChild(e);
+    }
+    return doc;
 }

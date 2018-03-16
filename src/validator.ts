@@ -2,6 +2,8 @@
 import parseSchematron, { IParsedSchematron, IRuleAssertion } from "./parseSchematron";
 import testAssertion, { ITestAssertionError, ITestAssertionResult } from "./testAssertion";
 
+import { loadXML, replaceTestWithExternalDocument, schematronIncludes } from "./includeExternalDocument";
+
 import * as xpath from "xpath";
 
 import sha1 from "./sha1";
@@ -15,7 +17,7 @@ if (typeof DOMParser === "undefined") {
 }
 
 // Parsed object cache
-const parsedMap = new Map<string, IParsedSchematron>();
+const parsedMap = new Map<string, Promise<IParsedSchematron>>();
 
 export interface IValidateOptions {
     /**
@@ -94,59 +96,59 @@ export async function validate(xml: string, schematron: string, options?: Partia
     const resourceDir = opts.resourceDir || "./";
     const xmlSnippetMaxLength = opts.xmlSnippetMaxLength === undefined ? 200 : opts.xmlSnippetMaxLength;
 
-    // If not validate xml, it might be a filepath
-    if (xml.trim().indexOf("<") !== 0) {
-        try {
-            const { readFile } = await import("fs");
-            xml = await new Promise<string>((o, r) => readFile(xml, "utf-8", (err, data) => {
-                if (err) {
-                    r(err);
-                } else {
-                    o(data);
-                }
-            }));
-        } catch (err) {
-            const ne = new Error("Detected filepath as xml parameter, but file could not be read: " + err);
-            (ne as any).innerError = err;
-            throw ne;
-        }
-    }
-
-    // If not validate xml, it might be a filepath
-    let schematronPath = null;
-    if (schematron.trim().indexOf("<") !== 0) {
-        try {
-            const { readFile } = await import("fs");
-            const temp = schematron;
-            schematron = await new Promise<string>((o, r) => readFile(schematron, "utf-8", (err, data) => {
-                if (err) {
-                    r(err);
-                } else {
-                    o(data);
-                }
-            }));
-            schematronPath = temp;
-        } catch (err) {
-            const ne = new Error("Detected filepath as schematron parameter, but file could not be read: " + err);
-            (ne as any).innerError = err;
-            throw ne;
-        }
-    }
-
-    // Load xml doc
     const DOM = await dom;
 
-    const xmlDoc = new DOM().parseFromString(xml, "application/xml");
+    //// read xml
+    let xmlDoc: Document;
 
-    const hash = await sha1(schematron);
-    const { namespaceMap, patternRuleMap, ruleAssertionMap } = parsedMap.get(hash) || (() => {
-        // Load schematron doc
-        const d = parseSchematron(new DOM().parseFromString(schematron, "application/xml"));
+    if (xml.trim().indexOf("<") !== 0) {
+        // If not valid xml, it might be a URI or filepath
+        try {
+            xmlDoc = await loadXML(DOM, resourceDir, xml);
+        } catch (err) {
+            // tslint:disable-next-line:max-line-length
+            const ne = new Error("Detected URL as xml parameter, but file " + JSON.stringify(xml) + " could not be read: " + err);
+            (ne as any).innerError = err;
+            throw ne;
+        }
+    } else {
+        xmlDoc = new DOM().parseFromString(xml, "application/xml");
+    }
 
-        // Cache parsed schematron
-        parsedMap.set(hash, d);
-        return d;
-    })();
+    //// read schematron
+    let parsedSchematron: Promise<IParsedSchematron>;
+
+    // If not validate xml, it might be a filepath
+    if (schematron.trim().indexOf("<") !== 0) {
+        try {
+            const lookupKey = ">>" + resourceDir + ">>" + schematron;
+            const schCch = parsedMap.get(lookupKey);
+            if (schCch) {
+                parsedSchematron = schCch;
+            } else {
+                parsedSchematron = loadXML(DOM, resourceDir, schematron, []).then(parseSchematron);
+                parsedMap.set(lookupKey, parsedSchematron);
+            }
+        } catch (err) {
+            // tslint:disable-next-line:max-line-length
+            const ne = new Error("Detected URL as schematron parameter, but file " + JSON.stringify(schematron) + " could not be read: " + err);
+            (ne as any).innerError = err;
+            throw ne;
+        }
+    } else {
+        const hash = await sha1(schematron);
+        parsedSchematron = parsedMap.get(hash) || (() => {
+            // Load schematron doc
+            // tslint:disable-next-line:max-line-length
+            const d = schematronIncludes(DOM, new DOM().parseFromString(schematron, "application/xml"), resourceDir).then(parseSchematron);
+
+            // Cache parsed schematron
+            parsedMap.set(hash, d);
+            return d;
+        })();
+    }
+
+    const { namespaceMap, patternRuleMap, ruleAssertionMap } = await parsedSchematron;
 
     // Create selector object, initialized with namespaces
     const nsObj: { [k: string]: string; } = {};
@@ -272,8 +274,7 @@ async function checkRule(state: IContextState, ruleId: string, ruleAssertion: IR
             const originalTest = test;
             if (/=document\((\'[-_.A-Za-z0-9]+\'|\"[-_.A-Za-z0-9]+\")\)/.test(test)) {
                 try {
-                    const includeExternalDocument = await import("./includeExternalDocument").then((x) => x.default);
-                    test = await includeExternalDocument(state.DOM, test, state.resourceDir);
+                    test = await replaceTestWithExternalDocument(state.DOM, test, state.resourceDir);
                 } catch (err) {
                     // console.warn("SCHEMATRON->checkRule:", err.message);
                     results.push({

@@ -6,14 +6,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// jshint node:true
-// jshint shadow:true
-module.exports = modifyTest;
-import { readFile } from "fs";
-import { resolve as path_resolve } from "path";
 import * as xpath from "xpath";
 const loadedExternalDocuments = new Map();
-export default function modifyTest(dom, test, resourceDir) {
+export function replaceTestWithExternalDocument(dom, test, resourceDir) {
     return __awaiter(this, void 0, void 0, function* () {
         let matches = /=document\((\'[-_.A-Za-z0-9]+\'|\"[-_.A-Za-z0-9]+\")\)/.exec(test);
         while (matches) {
@@ -49,13 +44,8 @@ export default function modifyTest(dom, test, resourceDir) {
             }
             const predicate = test.slice(start, end);
             // Load external doc (load from "cache" if already loaded)
-            const filepath = path_resolve(resourceDir, matches[1].slice(1, -1));
-            let externalDocP = loadedExternalDocuments.get(filepath);
-            if (!externalDocP) {
-                externalDocP = loadXML(dom, filepath);
-                loadedExternalDocuments.set(filepath, externalDocP);
-            }
-            const externalDoc = yield externalDocP;
+            const filepath = matches[1].slice(1, -1);
+            const externalDoc = yield loadXML(dom, resourceDir, filepath, []);
             const externalXpath = test.slice(equalInd + matches[0].length, end);
             // Extract namespaces
             const defaultNamespaceKey = (/([^(<>.\/)]+):[^(<>.\/)]+/.exec(externalXpath) || [])[1];
@@ -85,8 +75,76 @@ export default function modifyTest(dom, test, resourceDir) {
         return test;
     });
 }
-function loadXML(dom, path) {
+export function loadXML(dom, relbase, reluri, loadStack) {
+    let uri = reluri;
+    // resolve relative
+    if (/^[^:\\\/#]+(?:\\|\/|#|$)/.test(uri)) {
+        uri = "./" + uri;
+    }
+    if (/^\.\.?[\\\/]/.test(uri)) {
+        let partbase = relbase.replace(/[^\\\/]+$/, "");
+        let lastBase;
+        let lastUri;
+        do {
+            do {
+                lastUri = uri;
+                uri = uri.replace(/^\.[\\\/]/, "");
+            } while (lastUri !== uri);
+            lastBase = partbase;
+            if (/^\.\.[\\\/]/.test(uri)) {
+                partbase = partbase.replace(/[^\\\/]+[\\\/]$/, "");
+                uri = uri.substring(3);
+            }
+        } while (lastBase !== partbase || lastUri !== uri);
+        uri = partbase + uri;
+    }
+    // check if circular
+    let myLoadStack;
+    if (!loadStack) {
+        myLoadStack = [uri];
+    }
+    else {
+        if (loadStack.indexOf(uri) !== -1) {
+            throw new Error("Circular includes for file path: "
+                + loadStack.map((s) => JSON.stringify(s)).join(" -> ") + " -> " + JSON.stringify(uri));
+        }
+        myLoadStack = [...loadStack, uri];
+    }
+    // load file content
+    const lookupKey = (!loadStack ? "s" : "d") + uri;
+    let prom = loadedExternalDocuments.get(lookupKey);
+    if (prom) {
+        return prom;
+    }
+    if (/^(?:https?|file):\/\//.test(uri)) {
+        prom = loadXmlUrl(dom, uri);
+    }
+    else {
+        prom = loadXmlFile(dom, uri);
+    }
+    if (loadStack) {
+        prom = prom.then((doc) => schematronIncludes(dom, doc, uri, myLoadStack));
+    }
+    loadedExternalDocuments.set(lookupKey, prom);
+    return prom;
+}
+function loadXmlUrl(dom, url) {
     return __awaiter(this, void 0, void 0, function* () {
+        let f;
+        if (typeof fetch === "undefined") {
+            f = yield import("node-fetch").then((nf) => nf.default);
+        }
+        else {
+            f = fetch;
+        }
+        return f(url).then((r) => r.text()).then((t) => {
+            return new dom().parseFromString(t, "application/xml");
+        });
+    });
+}
+function loadXmlFile(dom, path) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { readFile } = yield import("fs");
         let externalXml = null;
         try {
             externalXml = yield new Promise((s, r) => {
@@ -106,6 +164,30 @@ function loadXML(dom, path) {
             throw ne;
         }
         return new dom().parseFromString(externalXml, "application/xml");
+    });
+}
+export function schematronIncludes(dom, doc, uri, loadStack) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const lstack = loadStack || [];
+        const sel = xpath.useNamespaces({ sch: "http://purl.oclc.org/dsdl/schematron" });
+        const includes = sel("//sch:include", doc).map((e) => {
+            const href = e.getAttribute("href");
+            if (!href) {
+                return null;
+            }
+            return [e, href, loadXML(dom, uri, href, lstack)];
+        }).filter((e) => Boolean(e));
+        for (const [e, href, subdocP] of includes) {
+            const subdoc = yield subdocP;
+            const ins = doc.importNode(subdoc.documentElement, true);
+            const comment = "sch:include(" + JSON.stringify(href) + ") ";
+            const parent = e.parentNode;
+            parent.insertBefore(doc.createComment(" BEGIN:" + comment), e);
+            parent.insertBefore(ins, e);
+            parent.insertBefore(doc.createComment(" END:" + comment), e);
+            parent.removeChild(e);
+        }
+        return doc;
     });
 }
 //# sourceMappingURL=includeExternalDocument.js.map

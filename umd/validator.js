@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const parseSchematron_1 = require("./parseSchematron");
 const testAssertion_1 = require("./testAssertion");
+const includeExternalDocument_1 = require("./includeExternalDocument");
 const xpath = require("xpath");
 const sha1_1 = require("./sha1");
 let dom;
@@ -37,58 +38,58 @@ function validate(xml, schematron, options) {
         const includeWarnings = opts.includeWarnings === undefined ? true : Boolean(opts.includeWarnings);
         const resourceDir = opts.resourceDir || "./";
         const xmlSnippetMaxLength = opts.xmlSnippetMaxLength === undefined ? 200 : opts.xmlSnippetMaxLength;
-        // If not validate xml, it might be a filepath
+        const DOM = yield dom;
+        //// read xml
+        let xmlDoc;
         if (xml.trim().indexOf("<") !== 0) {
+            // If not valid xml, it might be a URI or filepath
             try {
-                const { readFile } = yield Promise.resolve().then(() => require("fs"));
-                xml = yield new Promise((o, r) => readFile(xml, "utf-8", (err, data) => {
-                    if (err) {
-                        r(err);
-                    }
-                    else {
-                        o(data);
-                    }
-                }));
+                xmlDoc = yield includeExternalDocument_1.loadXML(DOM, resourceDir, xml);
             }
             catch (err) {
-                const ne = new Error("Detected filepath as xml parameter, but file could not be read: " + err);
+                // tslint:disable-next-line:max-line-length
+                const ne = new Error("Detected URL as xml parameter, but file " + JSON.stringify(xml) + " could not be read: " + err);
                 ne.innerError = err;
                 throw ne;
             }
         }
+        else {
+            xmlDoc = new DOM().parseFromString(xml, "application/xml");
+        }
+        //// read schematron
+        let parsedSchematron;
         // If not validate xml, it might be a filepath
-        let schematronPath = null;
         if (schematron.trim().indexOf("<") !== 0) {
             try {
-                const { readFile } = yield Promise.resolve().then(() => require("fs"));
-                const temp = schematron;
-                schematron = yield new Promise((o, r) => readFile(schematron, "utf-8", (err, data) => {
-                    if (err) {
-                        r(err);
-                    }
-                    else {
-                        o(data);
-                    }
-                }));
-                schematronPath = temp;
+                const lookupKey = ">>" + resourceDir + ">>" + schematron;
+                const schCch = parsedMap.get(lookupKey);
+                if (schCch) {
+                    parsedSchematron = schCch;
+                }
+                else {
+                    parsedSchematron = includeExternalDocument_1.loadXML(DOM, resourceDir, schematron, []).then(parseSchematron_1.default);
+                    parsedMap.set(lookupKey, parsedSchematron);
+                }
             }
             catch (err) {
-                const ne = new Error("Detected filepath as schematron parameter, but file could not be read: " + err);
+                // tslint:disable-next-line:max-line-length
+                const ne = new Error("Detected URL as schematron parameter, but file " + JSON.stringify(schematron) + " could not be read: " + err);
                 ne.innerError = err;
                 throw ne;
             }
         }
-        // Load xml doc
-        const DOM = yield dom;
-        const xmlDoc = new DOM().parseFromString(xml, "application/xml");
-        const hash = yield sha1_1.default(schematron);
-        const { namespaceMap, patternRuleMap, ruleAssertionMap } = parsedMap.get(hash) || (() => {
-            // Load schematron doc
-            const d = parseSchematron_1.default(new DOM().parseFromString(schematron, "application/xml"));
-            // Cache parsed schematron
-            parsedMap.set(hash, d);
-            return d;
-        })();
+        else {
+            const hash = yield sha1_1.default(schematron);
+            parsedSchematron = parsedMap.get(hash) || (() => {
+                // Load schematron doc
+                // tslint:disable-next-line:max-line-length
+                const d = includeExternalDocument_1.schematronIncludes(DOM, new DOM().parseFromString(schematron, "application/xml"), resourceDir).then(parseSchematron_1.default);
+                // Cache parsed schematron
+                parsedMap.set(hash, d);
+                return d;
+            })();
+        }
+        const { namespaceMap, patternRuleMap, ruleAssertionMap } = yield parsedSchematron;
         // Create selector object, initialized with namespaces
         const nsObj = {};
         for (const [nspf, uri] of namespaceMap.entries()) {
@@ -211,8 +212,7 @@ function checkRule(state, ruleId, ruleAssertion, contextOverride) {
                 const originalTest = test;
                 if (/=document\((\'[-_.A-Za-z0-9]+\'|\"[-_.A-Za-z0-9]+\")\)/.test(test)) {
                     try {
-                        const includeExternalDocument = yield Promise.resolve().then(() => require("./includeExternalDocument")).then((x) => x.default);
-                        test = yield includeExternalDocument(state.DOM, test, state.resourceDir);
+                        test = yield includeExternalDocument_1.replaceTestWithExternalDocument(state.DOM, test, state.resourceDir);
                     }
                     catch (err) {
                         // console.warn("SCHEMATRON->checkRule:", err.message);
