@@ -8,17 +8,19 @@ export type XPathType = XPathExports.XString | XPathExports.XNumber | XPathExpor
 
 // tslint:disable-next-line:interface-name
 export interface XPathFunction {
-    <R extends XPathType>(): R;
-    <P0 extends XPathType, R extends XPathType>(p0: P0): R;
-    <P0 extends XPathType, P1 extends XPathType, R extends XPathType>(p0: P0, p1: P1): R;
-    <P0 extends XPathType, P1 extends XPathType, P2 extends XPathType, R extends XPathType>(p0: P0, p1: P2, p2: P2): R;
+    <R extends XPathType>(c: XPathExports.IXPathContext): R;
+    <P0 extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0): R;
+    <P0 extends XPathType, P1 extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, p1: P1): R;
+    // tslint:disable-next-line:max-line-length
+    <P0 extends XPathType, P1 extends XPathType, P2 extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, p1: P2, p2: P2): R;
 
-    <P extends XPathType, R extends XPathType>(...r: P[]): R;
-    <P0 extends XPathType, P extends XPathType, R extends XPathType>(p0: P0, ...r: P[]): R;
+    <P extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, ...r: P[]): R;
     // tslint:disable-next-line:max-line-length
-    <P0 extends XPathType, P1 extends XPathType, P extends XPathType, R extends XPathType>(p0: P0, p1: P1, ...r: P[]): R;
+    <P0 extends XPathType, P extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, ...r: P[]): R;
     // tslint:disable-next-line:max-line-length
-    <P0 extends XPathType, P1 extends XPathType, P2 extends XPathType, P extends XPathType, R extends XPathType>(p0: P0, p1: P2, p2: P2, ...r: P[]): R;
+    <P0 extends XPathType, P1 extends XPathType, P extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, p1: P1, ...r: P[]): R;
+    // tslint:disable-next-line:max-line-length
+    <P0 extends XPathType, P1 extends XPathType, P2 extends XPathType, P extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, p1: P2, p2: P2, ...r: P[]): R;
 }
 
 // tslint:disable-next-line:no-namespace
@@ -81,11 +83,12 @@ export declare namespace XPathExports {
 
 const xpath = hiddenXpath as (typeof XPathExports) & (typeof hiddenXpath);
 
-const xsString = ((d: XPathType) => d.evaluate().string()) as XPathFunction;
-const xsNumber = ((d: XPathType) => d.evaluate().number()) as XPathFunction;
+const xsString = ((c: XPathExports.IXPathContext, d: XPathType) => d.evaluate(c).string()) as XPathFunction;
+const xsNumber = ((c: XPathExports.IXPathContext, d: XPathType) => d.evaluate(c).number()) as XPathFunction;
+const xsBoolean = ((c: XPathExports.IXPathContext, d: XPathType) => d.evaluate(c).bool()) as XPathFunction;
 
 const xsFuncs = new Map<string, XPathFunction>([
-    ["boolean",      ((d: XPathType) => d.evaluate().bool()) as XPathFunction],
+    ["boolean",      xsBoolean],
     ["decimal",      xsNumber],
     ["double",       xsNumber],
     ["float",        xsNumber],

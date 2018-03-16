@@ -1,14 +1,14 @@
 import * as hiddenXpath from "xpath";
 export declare type XPathType = XPathExports.XString | XPathExports.XNumber | XPathExports.XNodeSet | XPathExports.XBoolean;
 export interface XPathFunction {
-    <R extends XPathType>(): R;
-    <P0 extends XPathType, R extends XPathType>(p0: P0): R;
-    <P0 extends XPathType, P1 extends XPathType, R extends XPathType>(p0: P0, p1: P1): R;
-    <P0 extends XPathType, P1 extends XPathType, P2 extends XPathType, R extends XPathType>(p0: P0, p1: P2, p2: P2): R;
-    <P extends XPathType, R extends XPathType>(...r: P[]): R;
-    <P0 extends XPathType, P extends XPathType, R extends XPathType>(p0: P0, ...r: P[]): R;
-    <P0 extends XPathType, P1 extends XPathType, P extends XPathType, R extends XPathType>(p0: P0, p1: P1, ...r: P[]): R;
-    <P0 extends XPathType, P1 extends XPathType, P2 extends XPathType, P extends XPathType, R extends XPathType>(p0: P0, p1: P2, p2: P2, ...r: P[]): R;
+    <R extends XPathType>(c: XPathExports.IXPathContext): R;
+    <P0 extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0): R;
+    <P0 extends XPathType, P1 extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, p1: P1): R;
+    <P0 extends XPathType, P1 extends XPathType, P2 extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, p1: P2, p2: P2): R;
+    <P extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, ...r: P[]): R;
+    <P0 extends XPathType, P extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, ...r: P[]): R;
+    <P0 extends XPathType, P1 extends XPathType, P extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, p1: P1, ...r: P[]): R;
+    <P0 extends XPathType, P1 extends XPathType, P2 extends XPathType, P extends XPathType, R extends XPathType>(c: XPathExports.IXPathContext, p0: P0, p1: P2, p2: P2, ...r: P[]): R;
 }
 export declare namespace XPathExports {
     interface INamespaceLookup {

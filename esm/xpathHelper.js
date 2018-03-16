@@ -1,10 +1,11 @@
 // tslint:disable:max-classes-per-file
 import * as hiddenXpath from "xpath";
 const xpath = hiddenXpath;
-const xsString = ((d) => d.evaluate().string());
-const xsNumber = ((d) => d.evaluate().number());
+const xsString = ((c, d) => d.evaluate(c).string());
+const xsNumber = ((c, d) => d.evaluate(c).number());
+const xsBoolean = ((c, d) => d.evaluate(c).bool());
 const xsFuncs = new Map([
-    ["boolean", ((d) => d.evaluate().bool())],
+    ["boolean", xsBoolean],
     ["decimal", xsNumber],
     ["double", xsNumber],
     ["float", xsNumber],
