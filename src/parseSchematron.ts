@@ -14,8 +14,11 @@ function* getNamedChildren(parent: Element, localName: string, ns?: string): Ite
 export interface IDescriptionName {
     tag: "name";
 }
+export interface IDescriptionValueOf {
+    tag: "value-of";
+}
 
-export type IDescription = string | IDescriptionName;
+export type IDescription = string | IDescriptionName | IDescriptionValueOf;
 
 export type IAssertionOrExtension = IAssertion | IExtension;
 
@@ -240,6 +243,8 @@ function getDescription(nodeList: NodeList) {
             const n = e.localName;
             if (n === "name") {
                 desc.push({tag: "name"});
+            } else if (n === "value-of") {
+                desc.push({ tag: "value-of" });
             }
         }
     }
