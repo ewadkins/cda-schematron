@@ -10,18 +10,15 @@ export interface IAssertion {
     test: string;
     description: string;
 }
-export interface IRuleAssertion {
+export interface IRule {
     abstract: boolean;
     assertionsAndExtensions: IAssertionOrExtension[];
     context: null | string;
+    id?: string;
 }
 export interface IParsedSchematron {
     namespaceMap: Map<string, string>;
-    patternRuleMap: Map<string, string[]>;
-    ruleAssertionMap: Map<string, IRuleAssertion>;
+    patternRuleMap: Map<string, IRule[]>;
+    ruleMap: Map<string, IRule>;
 }
-export default function parseSchematron(doc: Document): {
-    namespaceMap: Map<string, string>;
-    patternRuleMap: Map<string, string[]>;
-    ruleAssertionMap: Map<string, IRuleAssertion>;
-};
+export default function parseSchematron(doc: Document): IParsedSchematron;

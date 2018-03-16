@@ -89,7 +89,7 @@ function validate(xml, schematron, options) {
                 return d;
             })();
         }
-        const { namespaceMap, patternRuleMap, ruleAssertionMap } = yield parsedSchematron;
+        const { namespaceMap, patternRuleMap, ruleMap } = yield parsedSchematron;
         // Create selector object, initialized with namespaces
         const nsObj = {};
         for (const [nspf, uri] of namespaceMap.entries()) {
@@ -108,11 +108,10 @@ function validate(xml, schematron, options) {
             xmlSnippetMaxLength,
         };
         for (const [patternId, rules] of patternRuleMap.entries()) {
-            for (const ruleId of rules) {
-                const ruleAssertion = ruleAssertionMap.get(ruleId);
+            for (const ruleAssertion of rules) {
                 if (!ruleAssertion.abstract) {
                     const context = ruleAssertion.context;
-                    const assertionResults = yield checkRule(state, ruleId, ruleAssertion);
+                    const assertionResults = yield checkRule(state, ruleAssertion, ruleMap);
                     for (const asserRes of assertionResults) {
                         if (isRuleIgnored(asserRes)) {
                             const { type, test, simplifiedTest, assertionId } = asserRes;
@@ -121,7 +120,7 @@ function validate(xml, schematron, options) {
                                 context,
                                 errorMessage: asserRes.errorMessage,
                                 patternId,
-                                ruleId,
+                                ruleId: ruleAssertion.id,
                                 simplifiedTest,
                                 test,
                                 type,
@@ -135,7 +134,7 @@ function validate(xml, schematron, options) {
                                     context,
                                     errorMessage: asserRes.results,
                                     patternId,
-                                    ruleId,
+                                    ruleId: ruleAssertion.id,
                                     simplifiedTest,
                                     test,
                                     type,
@@ -152,7 +151,7 @@ function validate(xml, schematron, options) {
                                             line,
                                             path,
                                             patternId,
-                                            ruleId,
+                                            ruleId: ruleAssertion.id,
                                             simplifiedTest,
                                             test,
                                             type,
@@ -184,11 +183,11 @@ function validate(xml, schematron, options) {
 }
 exports.validate = validate;
 // tslint:disable-next-line:max-line-length
-function checkRule(state, ruleId, ruleAssertion, contextOverride) {
+function checkRule(state, rule, ruleMap, contextOverride) {
     return __awaiter(this, void 0, void 0, function* () {
         const results = [];
-        const assertionsAndExtensions = ruleAssertion.assertionsAndExtensions;
-        const context = contextOverride || ruleAssertion.context;
+        const assertionsAndExtensions = rule.assertionsAndExtensions;
+        const context = contextOverride || rule.context;
         // Determine the sections within context, load selected section from cache if possible
         let selected = state.contexts.get(context);
         let contextModified = context;
@@ -244,7 +243,14 @@ function checkRule(state, ruleId, ruleAssertion, contextOverride) {
                 }
             }
             else {
-                results.push(...yield checkRule(state, assorext.rule, ruleAssertion, context));
+                const extrule = ruleMap.get(assorext.rule);
+                if (!extrule) {
+                    // tslint:disable-next-line:no-console
+                    console.error("SCHEMATRON->checkRule: Missing extension rule: %s", assorext.rule);
+                }
+                else {
+                    results.push(...yield checkRule(state, extrule, ruleMap, context));
+                }
             }
         }
         return results;

@@ -25,7 +25,7 @@ export interface IValidationResult {
     line: number | null;
     path: string;
     patternId: string;
-    ruleId: string;
+    ruleId?: string;
     assertionId: string;
     context: string;
     xml: string | null;
@@ -38,7 +38,7 @@ export declare function validate(xml: string, schematron: string, options?: Part
         context: string;
         errorMessage: string;
         patternId: string;
-        ruleId: string;
+        ruleId: string | undefined;
         simplifiedTest: string | null;
         test: string;
         type: "error" | "warning";
@@ -47,7 +47,7 @@ export declare function validate(xml: string, schematron: string, options?: Part
         context: string;
         errorMessage: ITestAssertionError;
         patternId: string;
-        ruleId: string;
+        ruleId: string | undefined;
         simplifiedTest: string | null;
         test: string;
         type: "error" | "warning";

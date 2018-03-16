@@ -26,23 +26,26 @@ export interface IAssertion {
     description: string;
 }
 
-export interface IRuleAssertion {
+export interface IRule {
     abstract: boolean;
     assertionsAndExtensions: IAssertionOrExtension[];
     context: null | string;
+    id?: string;
 }
 
 export interface IParsedSchematron {
     namespaceMap: Map<string, string>;
-    patternRuleMap: Map<string, string[]>;
-    ruleAssertionMap: Map<string, IRuleAssertion>;
+    patternRuleMap: Map<string, IRule[]>;
+    ruleMap: Map<string, IRule>;
 }
 
 export default function parseSchematron(doc: Document) {
     const namespaceMap = new Map<string, string>();
+    const abstractPatterns = new Set<string>();
+    const patternInstances = new Map<string, { isA: string; params: Map<string, string>; }>();
     const patternLevelMap = new Map<string, "error" | "warning">();
-    const patternRuleMap = new Map<string, string[]>();
-    const ruleAssertionMap = new Map<string, IRuleAssertion>();
+    const patternRuleMap = new Map<string, IRule[]>();
+    const ruleMap = new Map<string, IRule>();
 
     //// Namespace mapping
     const namespaces = xpath.select('//*[local-name()="ns"]', doc) as Element[];
@@ -91,30 +94,82 @@ export default function parseSchematron(doc: Document) {
     for (const pattern of patterns) {
         const patternId = pattern.getAttribute("id");
         const defaultLevel = (patternId && patternLevelMap.get(patternId)) || "warning";
+        const parsedRules: IRule[] = [];
         if (patternId) {
-            patternRuleMap.set(patternId, []);
+            if (parseAbstract(pattern.getAttribute("abstract"))) {
+                abstractPatterns.add(patternId);
+            }
+            const isA = pattern.getAttribute("is-a");
+            if (isA) {
+                const params = (xpath.select('./*[local-name()="param"]', pattern) as Element[]).reduce((m, e) => {
+                    const n = e.getAttribute("name");
+                    if (n) {
+                        m.set(n, e.getAttribute("value") || "");
+                    }
+                    return m;
+                }, new Map<string, string>());
+                patternInstances.set(patternId, { isA, params });
+                continue;
+            }
+            patternRuleMap.set(patternId, parsedRules);
         }
         const rules = xpath.select('./*[local-name()="rule"]', pattern) as Element[];
         for (const rule of rules) {
-            const ruleId = rule.getAttribute("id");
+            const ruleId = rule.getAttribute("id") || undefined;
+            const obj = {
+                abstract: parseAbstract(rule.getAttribute("abstract")),
+                assertionsAndExtensions: getAssertionsAndExtensions(rule, defaultLevel),
+                context: parseContext(rule.getAttribute("context")),
+                id: ruleId,
+            };
             if (ruleId) {
-                if (patternId && ruleId) {
-                    (patternRuleMap.get(patternId) as string[]).push(ruleId);
-                }
-                ruleAssertionMap.set(ruleId, {
-                    abstract: parseAbstract(rule.getAttribute("abstract")),
-                    assertionsAndExtensions: getAssertionsAndExtensions(rule, defaultLevel),
-                    context: parseContext(rule.getAttribute("context")),
-                });
+                ruleMap.set(ruleId, obj);
             }
+            parsedRules.push(obj);
         }
+    }
+
+    for (const [ patternId, { isA, params } ] of patternInstances.entries()) {
+        const base = patternRuleMap.get(isA);
+        if (!base) {
+            continue;
+        }
+        patternRuleMap.set(patternId, base.map((rule) => {
+            return {
+                ...rule,
+                assertionsAndExtensions: rule.assertionsAndExtensions.map((aoe) => {
+                    if (aoe.type === "assertion") {
+                        return {
+                            ...aoe,
+                            test: replaceParams(params, aoe.test),
+                        };
+                    }
+                    return aoe;
+                }),
+                context: rule.context && replaceParams(params, rule.context),
+            };
+        }));
+    }
+
+    for (const patternId of abstractPatterns) {
+        patternRuleMap.delete(patternId);
     }
 
     return {
         namespaceMap,
         patternRuleMap,
-        ruleAssertionMap,
-    };
+    } as IParsedSchematron;
+}
+
+function replaceParams(params: Map<string, string>, content: string) {
+    const pat = /\$[^,\s\(\)\+\/\*\\]+/;
+    return content.replace(pat, (a) => {
+        const d = params.get(a.substring(1));
+        if (d === undefined) {
+            throw new Error("Undefined parameter: " + a);
+        }
+        return d;
+    });
 }
 
 function getAssertionsAndExtensions(rule: Element, defaultLevel: "warning" | "error"): IAssertionOrExtension[] {

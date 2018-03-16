@@ -1,5 +1,5 @@
 
-import parseSchematron, { IParsedSchematron, IRuleAssertion } from "./parseSchematron";
+import parseSchematron, { IParsedSchematron, IRule } from "./parseSchematron";
 import testAssertion, { ITestAssertionError, ITestAssertionResult } from "./testAssertion";
 
 import { loadXML, replaceTestWithExternalDocument, schematronIncludes } from "./includeExternalDocument";
@@ -75,7 +75,7 @@ export interface IValidationResult {
     line: number | null;
     path: string;
     patternId: string;
-    ruleId: string;
+    ruleId?: string;
     assertionId: string;
     context: string;
     xml: string | null;
@@ -148,7 +148,7 @@ export async function validate(xml: string, schematron: string, options?: Partia
         })();
     }
 
-    const { namespaceMap, patternRuleMap, ruleAssertionMap } = await parsedSchematron;
+    const { namespaceMap, patternRuleMap, ruleMap } = await parsedSchematron;
 
     // Create selector object, initialized with namespaces
     const nsObj: { [k: string]: string; } = {};
@@ -171,11 +171,10 @@ export async function validate(xml: string, schematron: string, options?: Partia
     };
 
     for (const [patternId, rules] of patternRuleMap.entries()) {
-        for (const ruleId of rules) {
-            const ruleAssertion = ruleAssertionMap.get(ruleId) as IRuleAssertion;
+        for (const ruleAssertion of rules) {
             if (!ruleAssertion.abstract) {
                 const context = ruleAssertion.context as string;
-                const assertionResults = await checkRule(state, ruleId, ruleAssertion);
+                const assertionResults = await checkRule(state, ruleAssertion, ruleMap);
 
                 for (const asserRes of assertionResults) {
                     if (isRuleIgnored(asserRes)) {
@@ -185,7 +184,7 @@ export async function validate(xml: string, schematron: string, options?: Partia
                             context,
                             errorMessage: asserRes.errorMessage,
                             patternId,
-                            ruleId,
+                            ruleId: ruleAssertion.id,
                             simplifiedTest,
                             test,
                             type,
@@ -198,7 +197,7 @@ export async function validate(xml: string, schematron: string, options?: Partia
                                 context,
                                 errorMessage: asserRes.results,
                                 patternId,
-                                ruleId,
+                                ruleId: ruleAssertion.id,
                                 simplifiedTest,
                                 test,
                                 type,
@@ -214,7 +213,7 @@ export async function validate(xml: string, schematron: string, options?: Partia
                                         line,
                                         path,
                                         patternId,
-                                        ruleId,
+                                        ruleId: ruleAssertion.id,
                                         simplifiedTest,
                                         test,
                                         type,
@@ -245,10 +244,10 @@ export async function validate(xml: string, schematron: string, options?: Partia
 }
 
 // tslint:disable-next-line:max-line-length
-async function checkRule(state: IContextState, ruleId: string, ruleAssertion: IRuleAssertion, contextOverride?: string) {
+async function checkRule(state: IContextState, rule: IRule, ruleMap: Map<string, IRule>, contextOverride?: string) {
     const results: Array<IRuleResult | IRuleIgnored> = [];
-    const assertionsAndExtensions = ruleAssertion.assertionsAndExtensions;
-    const context = contextOverride || ruleAssertion.context as string;
+    const assertionsAndExtensions = rule.assertionsAndExtensions;
+    const context = contextOverride || rule.context as string;
 
     // Determine the sections within context, load selected section from cache if possible
     let selected = state.contexts.get(context) as Node[];
@@ -306,7 +305,13 @@ async function checkRule(state: IContextState, ruleId: string, ruleAssertion: IR
                 } as IRuleResult);
             }
         } else {
-            results.push(...await checkRule(state, assorext.rule, ruleAssertion, context));
+            const extrule = ruleMap.get(assorext.rule);
+            if (!extrule) {
+                // tslint:disable-next-line:no-console
+                console.error("SCHEMATRON->checkRule: Missing extension rule: %s", assorext.rule);
+            } else {
+                results.push(...await checkRule(state, extrule, ruleMap, context));
+            }
         }
     }
     return results;
