@@ -1,5 +1,5 @@
 
-import parseSchematron, { IParsedSchematron, IRule, IAssertion } from "./parseSchematron";
+import parseSchematron, { IAssertion, IParsedSchematron, IRule } from "./parseSchematron";
 import testAssertion, { ITestAssertionError, ITestAssertionResult } from "./testAssertion";
 
 import { loadXML, replaceTestWithExternalDocument, schematronIncludes } from "./includeExternalDocument";
