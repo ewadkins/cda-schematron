@@ -8,7 +8,7 @@ module.exports = {
 
 var fs = require('fs');
 var xpath = require('xpath');
-var dom = require('xmldom').DOMParser;
+var dom = require('@xmldom/xmldom').DOMParser;
 var crypto = require('crypto');
 
 var parseSchematron = require('./parseSchematron');
