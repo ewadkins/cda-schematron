@@ -3,7 +3,8 @@
 
 module.exports = {
     validate: validate,
-    clearCache: clearCache
+    clearCache: clearCache,
+    parseSchematron: require('./parseSchematron')
 };
 
 const fs = require('fs');

@@ -1,4 +1,35 @@
+# cda-schematron-validator
+A fork to the original cda-schematron. All credit to Eric Wadkins. Visit the github https://github.com/ewadkins/cda-schematron for the original repo.
+
+This is just a cosmetic change with updated node modules, a couple of minor bugs observed, and esversion 6 changes.
+
+The changes are fully backward compatible. So, leaving the original documentation as is below. 
+
+### new option parameter parsedSchematronMap
+In addition to everything that was possible,
+you can now supply a new option parameter `parsedSchematronMap`. You can create a schematron map as follows.
+
+```javascript
+const fs = require('fs');
+const dom = require('@xmldom/xmldom').DOMParser;
+const { parseSchematron, validation } = require('cda-schematron-validator');
+const schematronString = fs.readFileSync('SchematronFilePath', 'utf-8').toString();
+const schematronDoc = new dom().parseFromString(schematronString);
+const schematronMap = parseSchematron(schematronDoc);
+const results =  validate('xml string or file path', 'schematron sting, file path or null', options = { parsedSchematronMap: schematronMap});
+```
+If a schematron map is provided, the schematron string or path will not be read.
+
+To install this npm module, it will be
+
+```
+npm install cda-schematron-validator
+```
+
+
+
 # cda-schematron
+
 A javascript implementation of schematron testing for XML documents. This specifically resolves a need for a package that allows a quick, reliable install for validating HL7 clinical documents, such as C-CDA.
 
 Check out [cda-schematron-server](https://github.com/ewadkins/cda-schematron-server), a server wrapper of **cda-schematron**, for easy schematron validation.
@@ -92,6 +123,7 @@ validator.clearCache();
 ## License (MIT)
 
 Copyright &copy; 2017 [Eric Wadkins](http://www.ericwadkins.com/)
+Copyright &copy; 2022 [Priyaranjan (Raj) Tokachichu](https://github.com/priyaranjan-tokachichu)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
