@@ -1,6 +1,6 @@
 {
   "name": "cda-schematron-validator",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Fork of Eric Wadkins' javascript implementation of schematron testing for C-CDA XML documents. This includes bug fixes and some house keeping.",
   "main": "validator.js",
   "scripts": {

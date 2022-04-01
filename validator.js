@@ -25,7 +25,7 @@ function clearCache() {
     parsedMap = Object.create({});
     contextMap = Object.create({});
 }
-
+let namespaceMap, patternRuleMap, ruleAssertionMap, xpathSelect;
 function validate(xml, schematron, options = {}) {
     // If not valid xml, it might be a filepath
     // Adding explicit check to make it clear
@@ -79,13 +79,13 @@ function validate(xml, schematron, options = {}) {
     }
 
     // Extract data from parsed schematron object
-    let namespaceMap = schematronMap.namespaceMap;
-    let patternRuleMap = schematronMap.patternRuleMap;
-    let ruleAssertionMap = schematronMap.ruleAssertionMap;
+    namespaceMap = schematronMap.namespaceMap;
+    patternRuleMap = schematronMap.patternRuleMap;
+    ruleAssertionMap = schematronMap.ruleAssertionMap;
 
     // Create selector object, initialized with namespaces
     // Avoid using 'select' as a variable name as it is overused
-    const xpathSelect = xpath.useNamespaces(namespaceMap);
+    xpathSelect = xpath.useNamespaces(namespaceMap);
 
     let errors = [];
     let warnings = [];
@@ -103,7 +103,7 @@ function validate(xml, schematron, options = {}) {
             let ruleId = rules[i];
             let context = ruleAssertionMap[rules[i]].context;
             let assertionsAndExtensions = ruleAssertionMap[rules[i]].assertionsAndExtensions || [];
-            let assertionResults = checkRule(xmlDoc, xpathSelect, context, assertionsAndExtensions, options);
+            let assertionResults = checkRule(xmlDoc, context, assertionsAndExtensions, options);
             for (let j = 0; j < assertionResults.length; j++) {
                 let type = assertionResults[j].type;
                 let assertionId = assertionResults[j].assertionId;
@@ -170,7 +170,7 @@ function validate(xml, schematron, options = {}) {
 }
 
 // Take the checkRule function out of validate function, and pass on the variable needed as parameters and options
-function checkRule(xmlDoc, xpathSelect, originalContext, assertionsAndExtensions, options) {
+function checkRule(xmlDoc, originalContext, assertionsAndExtensions, options) {
     // Context cache
     let includeWarnings = options.includeWarnings === undefined ? true : options.includeWarnings;
     let resourceDir = options.resourceDir || './';
@@ -222,7 +222,18 @@ function checkRule(xmlDoc, xpathSelect, originalContext, assertionsAndExtensions
                 });
             }
         }
-        // removed recursive call to checkRule as it just returns an emptry array
+        else {
+            const extensionRule = assertionsAndExtensions[i].rule;
+            if (!extensionRule) {
+                continue;
+            }
+            const subAssertionsAndExtensions = ruleAssertionMap[extensionRule] ? ruleAssertionMap[extensionRule].assertionsAndExtensions : null;
+            if (!subAssertionsAndExtensions) {
+                continue;
+            }
+            const newContext = ruleAssertionMap[extensionRule].context;
+            results = results.concat(checkRule(xmlDoc, newContext, subAssertionsAndExtensions, options));            
+        }
     }
     return results;
 }
