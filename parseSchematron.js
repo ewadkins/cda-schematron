@@ -2,35 +2,35 @@
 // jshint shadow:true
 module.exports = parseSchematron;
 
-var xpath = require('xpath');
+const xpath = require('xpath');
 
 function parseSchematron(doc) {
     // Extract data from schematron
-    var schematronData = extract(doc);
+    let schematronData = extract(doc);
     
     return schematronData;
 }
 
 function extract(doc) {
-    var namespaceMap = {};
-    var patternLevelMap = {};
-    var patternRuleMap = {};
-    var ruleAssertionMap = {};
+    let namespaceMap = Object.create({});
+    let patternLevelMap = Object.create({});
+    let patternRuleMap = Object.create({});
+    let ruleAssertionMap = Object.create({});
     
     //// Namespace mapping
-    var namespaces = xpath.select('//*[local-name()="ns"]', doc);
-    for (var i = 0; i < namespaces.length; i++) {
+    let namespaces = xpath.select('//*[local-name()="ns"]', doc);
+    for (let i = 0; i < namespaces.length; i++) {
         namespaceMap[namespaces[i].getAttribute('prefix')] = namespaces[i].getAttribute('uri');
     }
     
     //// Pattern to level mapping
     
     // Find errors phases
-    var errorPhase = xpath.select('//*[local-name()="phase" and @id="errors"]', doc);
+    let errorPhase = xpath.select('//*[local-name()="phase" and @id="errors"]', doc);
     
     // Store error patterns
     if (errorPhase.length) {
-        for (var i = 0; i < errorPhase[0].childNodes.length; i++) {
+        for (let i = 0; i < errorPhase[0].childNodes.length; i++) {
             if (errorPhase[0].childNodes[i].localName === 'active') {
                 patternLevelMap[errorPhase[0].childNodes[i].getAttribute('pattern')] = 'error';
             }
@@ -38,11 +38,11 @@ function extract(doc) {
     }
         
     // Find errors phases
-    var warningPhase = xpath.select('//*[local-name()="phase" and @id="warnings"]', doc);
+    let warningPhase = xpath.select('//*[local-name()="phase" and @id="warnings"]', doc);
     
     // Store warning patterns
     if (warningPhase.length) {
-        for (var i = 0; i < warningPhase[0].childNodes.length; i++) {
+        for (let i = 0; i < warningPhase[0].childNodes.length; i++) {
             if (warningPhase[0].childNodes[i].localName === 'active') {
                 patternLevelMap[warningPhase[0].childNodes[i].getAttribute('pattern')] = 'warning';
             }
@@ -52,15 +52,15 @@ function extract(doc) {
     //// Pattern to rule and rule to assertion mapping
     
     // Find patterns
-    var patterns = xpath.select('//*[local-name()="pattern"]', doc);
+    let patterns = xpath.select('//*[local-name()="pattern"]', doc);
     
     // Map patterns to rules
-    for (var i = 0; i < patterns.length; i++) {
-        var patternId = patterns[i].getAttribute('id');
-        var defaultLevel = patternLevelMap[patternId] || 'warning';
+    for (let i = 0; i < patterns.length; i++) {
+        let patternId = patterns[i].getAttribute('id');
+        let defaultLevel = patternLevelMap[patternId] || 'warning';
         patternRuleMap[patternId] = [];
-        var rules = xpath.select('./*[local-name()="rule"]', patterns[i]);
-        for (var j = 0; j < rules.length; j++) {
+        let rules = xpath.select('./*[local-name()="rule"]', patterns[i]);
+        for (let j = 0; j < rules.length; j++) {
             patternRuleMap[patternId].push(rules[j].getAttribute('id'));
             ruleAssertionMap[rules[j].getAttribute('id')] = {
                 abstract: parseAbstract(rules[j].getAttribute('abstract')),
@@ -78,13 +78,13 @@ function extract(doc) {
 }
 
 function getAssertionsAndExtensions(rule, defaultLevel) {
-    var assertionsAndExtensions = [];
+    let assertionsAndExtensions = [];
     
     // Find and store assertions
-    var assertions = xpath.select('./*[local-name()="assert"]', rule);
-    for (var i = 0; i < assertions.length; i++) {
-        var description = assertions[i].childNodes[0] ? assertions[i].childNodes[0].data : '';
-        var level = defaultLevel;
+    let assertions = xpath.select('./*[local-name()="assert"]', rule);
+    for (let i = 0; i < assertions.length; i++) {
+        let description = assertions[i].childNodes[0] ? assertions[i].childNodes[0].data : '';
+        let level = defaultLevel;
         if (description.indexOf('SHALL') !== -1
             && (description.indexOf('SHOULD') === -1 || description.indexOf('SHALL') < description.indexOf('SHOULD'))) {
             level = 'error';
@@ -99,8 +99,8 @@ function getAssertionsAndExtensions(rule, defaultLevel) {
     }
     
     // Find and store extensions
-    var extensions = xpath.select('./*[local-name()="extends"]', rule);
-    for (var i = 0; i < extensions.length; i++) {
+    let extensions = xpath.select('./*[local-name()="extends"]', rule);
+    for (let i = 0; i < extensions.length; i++) {
         assertionsAndExtensions.push({
             type: 'extension',
             rule: extensions[i].getAttribute('rule'),

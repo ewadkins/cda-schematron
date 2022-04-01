@@ -3,18 +3,18 @@
 module.exports = testAssertion;
 
 function testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMaxLength) {
-    var results = [];
+    let results = [];
     
-    for (var i = 0; i < selected.length; i++) {
+    for (let i = 0; i < selected.length; i++) {
         try {
-            var result = select('boolean(' + test + ')', selected[i]);
-            var lineNumber = null;
-            var xmlSnippet = null;
+            let result = select('boolean(' + test + ')', selected[i]);
+            let lineNumber = null;
+            let xmlSnippet = null;
             if (selected[i].lineNumber) {
                 lineNumber = selected[i].lineNumber;
                 xmlSnippet = selected[i].toString();
             }
-            var maxLength = (xmlSnippetMaxLength || 1e308);
+            let maxLength = (xmlSnippetMaxLength || 1e308);
             if (xmlSnippet && xmlSnippet.length > maxLength) {
                 xmlSnippet = xmlSnippet.slice(0, maxLength) + '...';
             }
@@ -25,7 +25,7 @@ function testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMa
         }
     }
     
-    for (var i = 0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         if (results[i].result !== true && results[i].result !== false) {
             return { ignored: true, errorMessage: 'Test returned non-boolean result' };
         }
@@ -34,15 +34,15 @@ function testAssertion(test, selected, select, xmlDoc, resourceDir, xmlSnippetMa
 }
 
 function getXPath(node, path) {    
-    var top = !path ? true : false;
+    let top = !path ? true : false;
     path = path || [];
     if (node.parentNode) {
         path = getXPath(node.parentNode, path);
     }
 
-    var count = 1;
+    let count = 1;
     if (node.previousSibling) {
-        var sibling = node.previousSibling;
+        let sibling = node.previousSibling;
         do {
             if (sibling.nodeType === 1 && sibling.nodeName === node.nodeName) {
                 count++;
@@ -54,13 +54,13 @@ function getXPath(node, path) {
         }
     }
     else if (node.nextSibling) {
-        var sibling = node.nextSibling;
+        let sibling = node.nextSibling;
         do {
             if (sibling.nodeType === 1 && sibling.nodeName === node.nodeName) {
-                var count = 1;
+                count = 1;
                 sibling = null;
             } else {
-                var count = null;
+                count = null;
                 sibling = sibling.previousSibling;
             }
         } while (sibling);
