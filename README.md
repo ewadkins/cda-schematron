@@ -5,7 +5,7 @@ This is just a cosmetic change with updated node modules, a couple of minor bugs
 
 The changes are fully backward compatible. So, leaving the original documentation as is below. 
 
-### new option parameter parsedSchematronMap
+### New option parameter parsedSchematronMap
 In addition to everything that was possible,
 you can now supply a new option parameter `parsedSchematronMap`. You can create a schematron map as follows.
 
@@ -27,17 +27,12 @@ npm install cda-schematron-validator
 ```
 
 
-
+# Original Documentation of the cda-schematron
 # cda-schematron
 
 A javascript implementation of schematron testing for XML documents. This specifically resolves a need for a package that allows a quick, reliable install for validating HL7 clinical documents, such as C-CDA.
 
 Check out [cda-schematron-server](https://github.com/ewadkins/cda-schematron-server), a server wrapper of **cda-schematron**, for easy schematron validation.
-
-### Install
-```
-npm install cda-schematron
-```
 
 ### Validating xml
 ```javascript
