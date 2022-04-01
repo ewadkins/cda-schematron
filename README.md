@@ -25,6 +25,7 @@ To install this npm module, it will be
 ```
 npm install cda-schematron-validator
 ```
+Mocha VS Code configuratin added to directly execute the test file in `test/tests.js` using VS Code.
 
 
 # Original Documentation of the cda-schematron
