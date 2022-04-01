@@ -16,7 +16,10 @@ const { parseSchematron, validation } = require('cda-schematron-validator');
 const schematronString = fs.readFileSync('SchematronFilePath', 'utf-8').toString();
 const schematronDoc = new dom().parseFromString(schematronString);
 const schematronMap = parseSchematron(schematronDoc);
-const results =  validate('xml string or file path', 'schematron sting, file path or null', options = { parsedSchematronMap: schematronMap});
+const options = { 
+    parsedSchematronMap: schematronMap
+    };
+const results =  validate('xml string or file path', 'schematron sting, file path or null', options);
 ```
 If a schematron map is provided, the schematron string or path will not be read.
 
