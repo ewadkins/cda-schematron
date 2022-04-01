@@ -1,6 +1,6 @@
 {
   "name": "cda-schematron-validator",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Fork of Eric Wadkins' javascript implementation of schematron testing for C-CDA XML documents. This includes bug fixes and some house keeping.",
   "main": "validator.js",
   "scripts": {
@@ -12,6 +12,10 @@
   },
   "author": "Eric Wadkins",
   "contributors": [
+    {
+      "name" : "Eric Wadkins",
+      "url" : "http://www.ericwadkins.com/"
+    },
     {
       "name" : "Priyaranjan (Raj) Tokachichu",
       "email" : "priyaranjan@priyaranjan.com",
