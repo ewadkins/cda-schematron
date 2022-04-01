@@ -12,7 +12,7 @@ const xpath = require('xpath');
 const dom = require('@xmldom/xmldom').DOMParser;
 // crypto is now built-in node
 const crypto = require('crypto');
-
+const _get = require('lodash.get');
 const parseSchematron = require('./parseSchematron');
 const testAssertion = require('./testAssertion');
 const includeExternalDocument = require('./includeExternalDocument');
@@ -90,34 +90,27 @@ function validate(xml, schematron, options = {}) {
     let errors = [];
     let warnings = [];
     let ignored = [];
-    for (let pattern in patternRuleMap) {
-        if (!patternRuleMap.hasOwnProperty(pattern)) {
+    for (let patternId in patternRuleMap) {
+        if (!patternRuleMap.hasOwnProperty(patternId)) {
             continue;
         }
-        let patternId = pattern;
-        let rules = patternRuleMap[pattern];
+        const rules = patternRuleMap[patternId];
         for (let i = 0; i < rules.length; i++) {
-            if (ruleAssertionMap[rules[i]].abstract) {
+            const ruleId = rules[i];
+            const ruleObject = ruleAssertionMap[ruleId];
+            if (_get(ruleObject, 'abstract')) {
                 continue;
-            }
-            let ruleId = rules[i];
-            let context = ruleAssertionMap[rules[i]].context;
-            let assertionsAndExtensions = ruleAssertionMap[rules[i]].assertionsAndExtensions || [];
-            let assertionResults = checkRule(xmlDoc, context, assertionsAndExtensions, options);
-            for (let j = 0; j < assertionResults.length; j++) {
-                let type = assertionResults[j].type;
-                let assertionId = assertionResults[j].assertionId;
-                let test = assertionResults[j].test;
-                let simplifiedTest = assertionResults[j].simplifiedTest;
-                let description = assertionResults[j].description;
-                let errorMessage = assertionResults[j].errorMessage;
-                let results = assertionResults[j].results;
+            }            
+            const context = _get(ruleObject, 'context');
+            const assertionsAndExtensions = _get(ruleObject, 'assertionsAndExtensions') || [];
+            let failedAssertions = checkRule(xmlDoc, context, assertionsAndExtensions, options);
+            for (let j = 0; j < failedAssertions.length; j++) {
+                const assertionObject = failedAssertions[j];
+                const { type, assertionId, test, simplifiedTest, description, errorMessage, results } = assertionObject;
                 if (!results.ignored) {
                     for (let k = 0; k < results.length; k++) {
-                        let result = results[k].result;
-                        let line = results[k].line;
-                        let path = results[k].path;
-                        let xmlSnippet = results[k].xml;
+                        const resultObject = results[k];
+                        const { result, line, path, xml } = resultObject;
                         if (!result) {
                             let obj = {
                                 type: type,
@@ -130,7 +123,7 @@ function validate(xml, schematron, options = {}) {
                                 ruleId: ruleId,
                                 assertionId: assertionId,
                                 context: context,
-                                xml: xmlSnippet
+                                xml: xml
                             };
                             if (type === 'error') {
                                 errors.push(obj);
@@ -162,7 +155,7 @@ function validate(xml, schematron, options = {}) {
     return {
         errorCount: errors.length,
         warningCount: warnings.length,
-        ignoredCount: ignored ? ignored.length : 0,
+        ignoredCount: ignored.length,
         errors: errors,
         warnings: warnings,
         ignored: ignored
@@ -172,11 +165,11 @@ function validate(xml, schematron, options = {}) {
 // Take the checkRule function out of validate function, and pass on the variable needed as parameters and options
 function checkRule(xmlDoc, originalContext, assertionsAndExtensions, options) {
     // Context cache
-    let includeWarnings = options.includeWarnings === undefined ? true : options.includeWarnings;
-    let resourceDir = options.resourceDir || './';
-    let xmlSnippetMaxLength = options.xmlSnippetMaxLength === undefined ? 200 : options.xmlSnippetMaxLength;
+    const includeWarnings = options.includeWarnings === undefined ? true : options.includeWarnings;
+    const resourceDir = options.resourceDir || './';
+    const xmlSnippetMaxLength = options.xmlSnippetMaxLength === undefined ? 200 : options.xmlSnippetMaxLength;
     let results = [];
-    let context = options.contextOverride || originalContext;
+    const context = options.contextOverride || originalContext;
     // Determine the sections within context, load selected section from cache if possible
     let selected = contextMap[context];
     let contextModified = context;
@@ -194,9 +187,9 @@ function checkRule(xmlDoc, originalContext, assertionsAndExtensions, options) {
     }
 
     for (let i = 0; i < assertionsAndExtensions.length; i++) {
-        if (assertionsAndExtensions[i].type === 'assertion') {
-            let type = assertionsAndExtensions[i].level;
-            let test = assertionsAndExtensions[i].test;
+        const assertionAndExtensionObject = assertionsAndExtensions[i];
+        if (assertionAndExtensionObject.type === 'assertion') {
+            let { level, test, id, description } = assertionAndExtensionObject;
 
             // Extract values from external document and modify test if a document call is made
             let originalTest = test;
@@ -211,19 +204,19 @@ function checkRule(xmlDoc, originalContext, assertionsAndExtensions, options) {
             if (originalTest !== test) {
                 simplifiedTest = test;
             }
-            if (type === 'error' || includeWarnings) {
+            if (level === 'error' || includeWarnings) {
                 results.push({
-                    type: type,
-                    assertionId: assertionsAndExtensions[i].id,
+                    type: level,
+                    assertionId: id,
                     test: originalTest,
                     simplifiedTest: simplifiedTest,
-                    description: assertionsAndExtensions[i].description,
+                    description: description,
                     results: testAssertion(test, selected, xpathSelect, xmlDoc, resourceDir, xmlSnippetMaxLength)
                 });
             }
         }
         else {
-            const extensionRule = assertionsAndExtensions[i].rule;
+            const extensionRule = assertionAndExtensionObject.rule;
             if (!extensionRule) {
                 continue;
             }
@@ -231,7 +224,8 @@ function checkRule(xmlDoc, originalContext, assertionsAndExtensions, options) {
             if (!subAssertionsAndExtensions) {
                 continue;
             }
-            const newContext = ruleAssertionMap[extensionRule].context;
+            const newRuleObject = ruleAssertionMap[extensionRule];
+            const newContext = newRuleObject.context;
             results = results.concat(checkRule(xmlDoc, newContext, subAssertionsAndExtensions, options));            
         }
     }
