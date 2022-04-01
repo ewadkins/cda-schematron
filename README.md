@@ -12,7 +12,7 @@ you can now supply a new option parameter `parsedSchematronMap`. You can create 
 ```javascript
 const fs = require('fs');
 const dom = require('@xmldom/xmldom').DOMParser;
-const { parseSchematron, validation } = require('cda-schematron-validator');
+const { parseSchematron, validate } = require('cda-schematron-validator');
 const schematronString = fs.readFileSync('SchematronFilePath', 'utf-8').toString();
 const schematronDoc = new dom().parseFromString(schematronString);
 const schematronMap = parseSchematron(schematronDoc);
