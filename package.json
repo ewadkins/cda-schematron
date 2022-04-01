@@ -8,9 +8,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/priyaranjan-tokachichu/cda-schematron-validator"
+    "url": "git+https://github.com/priyaranjan-tokachichu/cda-schematron-validator.git"
   },
-  "author": "Priyaranjan Tokachichu",
+  "author": "Eric Wadkins",
+  "contributors": [
+    {
+      "name" : "Priyaranjan (Raj) Tokachichu",
+      "email" : "priyaranjan@priyaranjan.com",
+      "url" : "https://github.com/priyaranjan-tokachichu"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/priyaranjan-tokachichu/cda-schematron-validator/issues"
@@ -26,5 +33,15 @@
   "dependencies": {
     "@xmldom/xmldom": "~0.7.2",
     "xpath": "~0.0.32"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "keywords": [
+    "C-CDA",
+    "HL7",
+    "Schematron",
+    "CCD",
+    "XML"
+  ]
 }
