@@ -2,23 +2,23 @@
 // jshint shadow:true
 module.exports = modifyTest;
 
-var fs = require('fs');
-var xpath = require('xpath');
-var dom = require('xmldom').DOMParser;
-var path_module = require('path');
+const fs = require('fs');
+const xpath = require('xpath');
+const dom = require('@xmldom/xmldom').DOMParser;
+const path_module = require('path');
 
-var loadedExternalDocuments = {};
+let loadedExternalDocuments = Object.create({});
 
 function modifyTest(test, resourceDir) {
     
-    var matches = /=document\((\'[-_.A-Za-z0-9]+\'|\"[-_.A-Za-z0-9]+\")\)/.exec(test);
+    let matches = /=document\((\'[-_.A-Za-z0-9]+\'|\"[-_.A-Za-z0-9]+\")\)/.exec(test);
     while (matches) {
         
         // String processing to select the non-regular predicate expression
-        var equalInd = test.indexOf(matches[0]);
-        var start = equalInd;
-        var bracketDepth = 0;
-        for (var i = equalInd; i >= 0; i--) {
+        let equalInd = test.indexOf(matches[0]);
+        let start = equalInd;
+        let bracketDepth = 0;
+        for (let i = equalInd; i >= 0; i--) {
             if (!bracketDepth && (test[i] === '[' || test[i] === ' ')) {
                 start = i + 1;
                 break;
@@ -31,9 +31,9 @@ function modifyTest(test, resourceDir) {
             }
         }
         
-        var end = test.length;
+        let end = test.length;
         bracketDepth = 0;
-        for (var i = start + matches[0].length; i < test.length; i++) {
+        for (let i = start + matches[0].length; i < test.length; i++) {
             if (!bracketDepth && (test[i] === ']' || test[i] === ' ')) {
                 end = i;
                 break;
@@ -46,13 +46,13 @@ function modifyTest(test, resourceDir) {
             }
         }
         
-        var predicate = test.slice(start, end);
+        let predicate = test.slice(start, end);
                 
         // Load external doc (load from "cache" if already loaded)
-        var filepath = matches[1].slice(1, -1);
-        var externalDoc;
+        let filepath = matches[1].slice(1, -1);
+        let externalDoc;
         if (!loadedExternalDocuments[filepath]) {
-            var externalXml = null;
+            let externalXml = null;
             try {
                 externalXml = fs.readFileSync(path_module.join(resourceDir, filepath), 'utf-8').toString();
             }
@@ -66,13 +66,13 @@ function modifyTest(test, resourceDir) {
             externalDoc = loadedExternalDocuments[filepath];
         }
         
-        var externalXpath = test.slice(equalInd + matches[0].length, end);
+        let externalXpath = test.slice(equalInd + matches[0].length, end);
                 
         // Extract namespaces
-        var defaultNamespaceKey = /([^(<>.\/)]+):[^(<>.\/)]+/.exec(externalXpath)[1];
-        var externalNamespaceMap = externalDoc.lastChild._nsMap;
-        var namespaceMap = {};
-        for (var key in externalNamespaceMap) {
+        let defaultNamespaceKey = /([^(<>.\/)]+):[^(<>.\/)]+/.exec(externalXpath)[1];
+        let externalNamespaceMap = externalDoc.lastChild._nsMap;
+        let namespaceMap = {};
+        for (let key in externalNamespaceMap) {
             if (externalNamespaceMap.hasOwnProperty(key)) {
                 if (key) {
                     namespaceMap[key] = externalNamespaceMap[key];
@@ -81,17 +81,17 @@ function modifyTest(test, resourceDir) {
         }
         namespaceMap[defaultNamespaceKey] = externalNamespaceMap[''];
         
-        var externalSelect = xpath.useNamespaces(namespaceMap);
+        let externalSelect = xpath.useNamespaces(namespaceMap);
         
         // Create new predicate from extract values
-        var values = [];
-        var externalResults = externalSelect(externalXpath, externalDoc);
-        for (var i = 0; i < externalResults.length; i++) {
+        let values = [];
+        let externalResults = externalSelect(externalXpath, externalDoc);
+        for (let i = 0; i < externalResults.length; i++) {
             values.push(externalResults[i].value);
         }
-        var lhv = predicate.slice(0, predicate.indexOf('=document('));
-        var newPredicate = '(';
-        for (var i = 0; i < values.length; i++) {
+        let lhv = predicate.slice(0, predicate.indexOf('=document('));
+        let newPredicate = '(';
+        for (let i = 0; i < values.length; i++) {
             newPredicate += lhv + '=\'' + values[i] + '\'';
             if (i < values.length - 1) {
                 newPredicate += ' or ';

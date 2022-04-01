@@ -1,18 +1,18 @@
-var fs = require('fs');
-var expect = require('chai').expect;
+const fs = require('fs');
+const expect = require('chai').expect;
 
-var validator = require('../validator');
+const validator = require('../validator');
 
 // Which xml file to test
-var xmlPath = './test/test.xml';
+const xmlPath = './test/test.xml';
 // Which schematron to test against
-var schematronPath = './test/test.sch';
+const schematronPath = './test/test.sch';
 
-var xml = fs.readFileSync(xmlPath, 'utf-8').toString();
-var schematron = fs.readFileSync(schematronPath, 'utf-8').toString();
+const xml = fs.readFileSync(xmlPath, 'utf-8').toString();
+const schematron = fs.readFileSync(schematronPath, 'utf-8').toString();
 
 describe('Validator should', function() {
-    var results;
+    let results;
     it('return results', function(done) {
         results = validator.validate(xml, schematron);
         expect(results).to.be.an('object');
