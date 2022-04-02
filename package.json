@@ -1,6 +1,6 @@
 {
   "name": "cda-schematron-validator",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Fork of Eric Wadkins' javascript implementation of schematron testing for C-CDA XML documents. This includes bug fixes and some house keeping.",
   "main": "validator.js",
   "scripts": {
@@ -13,13 +13,13 @@
   "author": "Eric Wadkins",
   "contributors": [
     {
-      "name" : "Eric Wadkins",
-      "url" : "http://www.ericwadkins.com/"
+      "name": "Eric Wadkins",
+      "url": "http://www.ericwadkins.com/"
     },
     {
-      "name" : "Priyaranjan (Raj) Tokachichu",
-      "email" : "priyaranjan@priyaranjan.com",
-      "url" : "https://github.com/priyaranjan-tokachichu"
+      "name": "Priyaranjan (Raj) Tokachichu",
+      "email": "priyaranjan@priyaranjan.com",
+      "url": "https://github.com/priyaranjan-tokachichu"
     }
   ],
   "license": "MIT",
@@ -35,8 +35,8 @@
     "mocha": "~9.2.2"
   },
   "dependencies": {
-    "lodash.get": "~4.4.2",
     "@xmldom/xmldom": "~0.7.2",
+    "lodash.get": "~4.4.2",
     "xpath": "~0.0.32"
   },
   "directories": {

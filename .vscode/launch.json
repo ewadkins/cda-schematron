@@ -6,7 +6,7 @@
       "type": "node",
       "request": "launch",
       "runtimeArgs": [
-        "${workspaceRoot}/node_modules/.bin/mocha",
+        "${workspaceRoot}/node_modules/mocha/bin/mocha",
         "--inspect-brk",
         "${relativeFile}",
       ],
